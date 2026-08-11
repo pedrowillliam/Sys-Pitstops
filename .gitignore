@@ -1,0 +1,48 @@
+# ---------- Environment ----------
+.env
+.env.*
+!.env.example
+back/appsettings.Development.json
+back/appsettings.Local.json
+
+# ---------- .NET ----------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+*.userprefs
+*.dll
+*.pdb
+.vs/
+TestResults/
+
+# ---------- Node ----------
+node_modules/
+dist/
+dist-ssr/
+build/
+.vite/
+*.local
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- Uploads e mídia local ----------
+uploads/
+storage/
+*.sqlite
+*.db
+
+# ---------- Editores ----------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+*.swp
+
+# ---------- Sistema ----------
+.DS_Store
+Thumbs.db
+desktop.ini
