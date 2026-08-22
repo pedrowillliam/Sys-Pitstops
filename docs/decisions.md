@@ -233,3 +233,34 @@ e sem testes de front-end.
 **Alternativas:** nenhum teste; cobertura ampla incluindo e2e e front.
 **Motivo:** deixa explícito na revisão de PR o que é obrigatório, em vez de virar
 julgamento caso a caso. E2e e teste de front não cabem em 4 semanas.
+
+## D-25 — Fotos atrás de uma interface de storage, começando em disco local
+**Data:** 2026-08-22
+*Revisada por D-26*
+**Decisão:** o upload passa por uma abstração `IMediaStorage`, com implementação
+em disco local no MVP. `service_order_media.storage_key` guarda a chave lógica do
+arquivo, nunca um caminho absoluto. A imagem é comprimida no navegador antes do
+envio, e o servidor valida tipo e tamanho.
+**Alternativas:** gravar direto numa pasta do servidor, sem abstração; MinIO no
+docker-compose; storage em nuvem desde já.
+**Motivo:** o destino definitivo depende da decisão de publicação, ainda aberta —
+e disco de plano gratuito é efêmero, apagaria as fotos a cada deploy. A interface
+desacopla as duas decisões: trocar o destino vira uma classe nova. A compressão
+no cliente é o que torna o upload viável no pátio com sinal fraco.
+
+## D-26 — Publicação no Render como serviço único; fotos no Supabase Storage
+**Data:** 2026-08-22
+*Revisa D-25*
+**Decisão:** a aplicação é publicada no Render como **um único serviço**, com o
+ASP.NET servindo a SPA já compilada, mais o Postgres gerenciado do Render. As
+fotos vão para o Supabase Storage pelo endpoint compatível com S3, em bucket
+privado, exibidas por URL assinada de curta duração. Em desenvolvimento o
+`IMediaStorage` continua gravando em disco local.
+**Alternativas:** dois serviços separados no Render, um para o front e outro para
+a API; disco local também em produção; Cloudflare R2.
+**Motivo:** dois serviços colocariam front e API em sites diferentes, e o cookie
+`SameSite=Lax` da D-20 deixaria de ser enviado — o login passaria local e
+falharia em produção. Serviço único preserva a mesma origem que o proxy do Vite
+já garante em dev, e dispensa CORS. O disco do plano gratuito é efêmero e
+apagaria as fotos a cada deploy; o endpoint S3 mantém a portabilidade que a D-25
+comprou, permitindo trocar de provedor por configuração.
