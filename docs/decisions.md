@@ -164,3 +164,38 @@ back, enquanto o Swagger não existisse.
 **Motivo:** complementa D-17. Um contrato em Markdown desatualiza em relação ao
 código, que é exatamente a divergência que D-17 quer evitar. Publicar as rotas
 cedo destrava o front sem criar uma segunda fonte de verdade.
+
+## D-19 — Autenticação com JWT próprio e BCrypt, sem refresh token
+**Data:** 2026-08-22
+**Decisão:** autenticação própria com JWT assinado e senha em BCrypt, sem
+ASP.NET Identity. Access token de 8 horas — um turno de trabalho — e nenhum
+refresh token. A revogação é feita por `users.is_active`, verificado no banco a
+cada requisição.
+**Alternativas:** ASP.NET Identity; access token curto com refresh token em
+tabela própria.
+**Motivo:** o schema já tem `users` com `role` como enum, e o Identity traria o
+esquema dele. O refresh token custa um interceptor no front que não se paga em
+4 semanas. **Risco aceito:** um token roubado vale até 8 horas. O refresh entra
+na Fase 2.
+
+## D-20 — Token em cookie httpOnly, não em localStorage
+**Data:** 2026-08-22
+**Decisão:** o access token trafega em cookie `httpOnly` com `SameSite=Lax`. Em
+desenvolvimento, o Vite faz proxy de `/api` para o backend, de modo que front e
+API sejam a mesma origem.
+**Alternativas:** guardar o token em `localStorage`.
+**Motivo:** no `localStorage`, basta um script injetado para o token vazar; o
+cookie `httpOnly` não é legível por JavaScript. O CSRF que o cookie abriria é
+coberto por `SameSite=Lax`, e o proxy do Vite elimina o atrito de CORS em dev.
+
+## D-21 — Rota pública do orçamento: anônima, com rate limit e token forte
+**Data:** 2026-08-22
+**Decisão:** a rota de consulta e aprovação do orçamento fica fora do filtro de
+autorização, com rate limit por IP. O `public_token` tem 32 bytes gerados por
+`RandomNumberGenerator` — nunca `Random`, nunca sequencial.
+**Alternativas:** exigir algum cadastro do cliente; confiar apenas no sigilo do
+token, sem limite de tentativas.
+**Motivo:** D-10 e D-15 exigem que o cliente abra o link sem login, o que faz
+dessa a única superfície sem autenticação do sistema. Sem limite, dá para varrer
+tokens até achar um válido — e ele não só expõe dado pessoal como permite
+aprovar a OS, disparando `AWAITING_APPROVAL -> IN_PROGRESS`.
