@@ -2,7 +2,7 @@
 
 Este documento explica **por que** o banco está modelado assim. O DDL de
 referência está em `docs/schema.sql`; a fonte de verdade são as migrations
-do EF Core em `back/`.
+do EF Core em `backend/`.
 
 Convenção: código e banco em inglês, interface em português.
 
@@ -165,9 +165,9 @@ calcular retroativamente.
 ## 7. Organização do repositório
 
 ```
-/back    API em C# (ASP.NET Core) e migrations
-/front   PWA em React + Vite + TypeScript
-/docs    Este documento e os demais
+/backend    API em C# (ASP.NET Core) e migrations
+/frontend   PWA em React + Vite + TypeScript
+/docs       Este documento e os demais
 ```
 
 **O que vai no `README.md` da raiz:** stack, pré-requisitos, como subir o

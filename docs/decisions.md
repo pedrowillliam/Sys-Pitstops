@@ -50,7 +50,7 @@ worker sirva sem rede — o que a SPA entrega naturalmente.
 
 ## D-05 — Monorepo
 **Data:** 2026-08-10
-**Decisão:** repositório único com `/back`, `/front` e `/docs`.
+**Decisão:** repositório único com `/backend`, `/frontend` e `/docs`.
 **Alternativas:** repositórios separados para API e front.
 **Motivo:** com 3 pessoas, um PR fecha a funcionalidade inteira (endpoint e
 tela), e a issue não fica dividida entre dois lugares.

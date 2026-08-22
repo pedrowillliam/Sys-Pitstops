@@ -32,9 +32,9 @@ Escopo do MVP, roadmap e justificativa das decisões estão em
 ## Estrutura
 
 ```
-/back    API, domínio e migrations
-/front   PWA
-/docs    Modelo de dados, schema, contrato da API e decisões
+/backend    API, domínio e migrations
+/frontend   PWA
+/docs       Modelo de dados, schema, contrato da API e decisões
 ```
 
 ## Pré-requisitos
