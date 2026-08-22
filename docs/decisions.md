@@ -199,3 +199,37 @@ token, sem limite de tentativas.
 dessa a única superfície sem autenticação do sistema. Sem limite, dá para varrer
 tokens até achar um válido — e ele não só expõe dado pessoal como permite
 aprovar a OS, disparando `AWAITING_APPROVAL -> IN_PROGRESS`.
+
+## D-22 — Primeiro admin criado por seed no startup
+**Data:** 2026-08-22
+**Decisão:** na subida, a aplicação cria um usuário `ADMIN` se não houver nenhum,
+usando `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD` vindos do ambiente. O seed é
+idempotente: havendo admin, não faz nada e nunca sobrescreve senha.
+**Alternativas:** comando de CLI dedicado; endpoint de setup na primeira execução.
+**Motivo:** sem isso não existe primeiro login. O comando de CLI vira o passo que
+todo mundo esquece ao montar o ambiente, e senha não pode ficar no código.
+
+## D-23 — Estoque pode ficar negativo
+**Data:** 2026-08-22
+**Decisão:** a baixa na transição para `READY` não bloqueia por falta de saldo.
+O `stock_movements` do tipo `OUT` é gravado e `quantity_on_hand` pode ficar
+negativo. A tela avisa ao adicionar peça sem saldo, e a correção se dá por um
+movimento `ADJUSTMENT`.
+**Alternativas:** bloquear a transição; bloquear com dispensa registrada, nos
+moldes de D-13.
+**Motivo:** quando a OS fica pronta, a peça já foi fisicamente usada. Recusar o
+registro deixaria `stock_movements` incompleto, contrariando o §4 do
+`data-model.md`, que o define como a verdade auditável. Saldo negativo indica
+cadastro desatualizado, não dado corrompido — é o sintoma visível do risco que
+D-11 já aceitou.
+
+## D-24 — Testes cobrem domínio e CRUD, sem ponta a ponta
+**Data:** 2026-08-22
+**Decisão:** xUnit cobrindo o núcleo de domínio — máquina de estados com permissão
+por papel, baixa de estoque em transação única e cálculo do total com preço
+congelado — e também os CRUD de clientes, veículos e peças, com atenção às
+validações e às restrições de unicidade (placa, SKU). Sem testes de ponta a ponta
+e sem testes de front-end.
+**Alternativas:** nenhum teste; cobertura ampla incluindo e2e e front.
+**Motivo:** deixa explícito na revisão de PR o que é obrigatório, em vez de virar
+julgamento caso a caso. E2e e teste de front não cabem em 4 semanas.
