@@ -2,8 +2,8 @@
 .env
 .env.*
 !.env.example
-backend/appsettings.Development.json
-backend/appsettings.Local.json
+**/appsettings.Development.json
+**/appsettings.Local.json
 
 # ---------- .NET ----------
 [Bb]in/
