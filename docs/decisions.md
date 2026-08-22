@@ -153,3 +153,14 @@ TypeScript do front é gerado a partir dele. Tipos não são escritos à mão.
 **Alternativas:** tipos duplicados manualmente nos dois lados.
 **Motivo:** front e back são pessoas diferentes trabalhando em paralelo;
 divergência de tipos é a maior fonte de retrabalho nesse arranjo.
+
+## D-18 — Backend primeiro, sem documento de contrato à parte
+**Data:** 2026-08-22
+**Decisão:** o backend é construído primeiro e publica as rotas com DTOs desde
+os primeiros dias, ainda sem lógica. Assim o Swagger existe cedo e o front gera
+o cliente TypeScript contra ele. Não haverá `docs/api-contract.md`.
+**Alternativas:** escrever `api-contract.md` como acordo prévio entre front e
+back, enquanto o Swagger não existisse.
+**Motivo:** complementa D-17. Um contrato em Markdown desatualiza em relação ao
+código, que é exatamente a divergência que D-17 quer evitar. Publicar as rotas
+cedo destrava o front sem criar uma segunda fonte de verdade.

@@ -180,8 +180,10 @@ duas telas. Se passar disso, ninguém lê.
 |---|---|
 | `data-model.md` | este documento |
 | `schema.sql` | DDL de referência |
-| `api-contract.md` | endpoints, ou link para o Swagger |
 | `decisions.md` | registro curto de decisões e o motivo de cada uma |
+
+O contrato da API não fica em `/docs`: é o Swagger gerado pelo ASP.NET,
+servido em `/swagger` assim que o backend sobe (ver D-18).
 
 `decisions.md` é o que evita a discussão circular na semana 3. Formato: data,
 decisão, alternativas descartadas, motivo. Três linhas por entrada.
