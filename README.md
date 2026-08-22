@@ -39,9 +39,15 @@ Escopo do MVP, roadmap e justificativa das decisões estão em
 
 ## Pré-requisitos
 
-- .NET SDK 8+
+- .NET SDK 10
 - Node.js 20+
 - Docker e Docker Compose
+
+A CLI do EF Core é instalada uma vez por máquina:
+
+```bash
+dotnet tool install --global dotnet-ef
+```
 
 ## Como rodar
 
