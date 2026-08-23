@@ -4,7 +4,7 @@ ERP em Progressive Web App para gestão de oficinas mecânicas independentes.
 Projeto da disciplina **Projeto de Desenvolvimento de Software (2026.1)** —
 Bacharelado em Ciência da Computação, UFAPE.
 
-**Equipe:** Fábio Medeiros, João Santos e Pedro da Silva
+**Equipe:** Fábio Medeiros, João Santos e Pedro William
 **Orientação:** Prof. Rodrigo Gusmão De Carvalho Rocha
 
 ---
