@@ -264,3 +264,16 @@ falharia em produção. Serviço único preserva a mesma origem que o proxy do V
 já garante em dev, e dispensa CORS. O disco do plano gratuito é efêmero e
 apagaria as fotos a cada deploy; o endpoint S3 mantém a portabilidade que a D-25
 comprou, permitindo trocar de provedor por configuração.
+
+## D-27 — Ordem dos rótulos de enum é alfabética, não a do fluxo
+**Data:** 2026-08-22
+**Decisão:** os tipos enum criados pela migration têm os rótulos em ordem
+alfabética, e não na ordem declarada em `docs/schema.sql`. A ordem do fluxo da OS
+é responsabilidade da aplicação — o Kanban define a sequência das colunas no
+front, e qualquer consulta que precise dessa ordem usa `CASE` explícito.
+**Consequência a lembrar:** `ORDER BY status` **não** devolve
+`REQUESTED, CONFIRMED, IN_YARD, ...`; devolve ordem alfabética.
+**Alternativas:** forçar a ordem de declaração com SQL manual numa migration.
+**Motivo:** a ordem só afeta `ORDER BY` e operadores de comparação; o EF grava e
+lê pelo rótulo, então nada quebra. Forçar a ordem exigiria editar à mão o SQL que
+o Npgsql gera, o que é frágil e teria de ser repetido a cada mudança de enum.
