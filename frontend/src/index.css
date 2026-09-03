@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+
+/* Provisional palette. The Figma file ("Sys-PitStop") is the source for the
+   real one; it is kept here as tokens so restyling is one file, not a sweep
+   through every component. */
+@theme {
+  --color-surface: #f6f7f9;
+  --color-panel: #ffffff;
+  --color-ink: #0b1220;
+  --color-ink-soft: #55617a;
+  --color-line: #e2e6ee;
+  --color-brand: #0b1220;
+  --color-accent: #f59e0b;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}
