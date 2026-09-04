@@ -1,0 +1,3 @@
+Em produção esta pasta recebe a SPA compilada (D-26); veja o Dockerfile.
+Em desenvolvimento ela fica vazia — quem serve o front é o Vite.
+Existe versionada só para o UseStaticFiles não avisar que o WebRootPath sumiu.

@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SysPitstops.Api.Auth;
@@ -7,10 +8,21 @@ using SysPitstops.Api.Data;
 using SysPitstops.Api.Domain;
 
 // The repository root .env is the single source of local configuration, as
-// documented in README.md. TraversePath walks up from the project directory.
-DotNetEnv.Env.TraversePath().Load();
+// documented in README.md. There is no .env in the published container — the
+// values come from the environment itself, so a missing file is not an error.
+//
+//   onlyExactPath: false     walk up from the project directory to find it
+//   clobberExistingVars: false   a stray .env never beats what the host set
+DotNetEnv.Env.Load(options: new DotNetEnv.LoadOptions(
+    clobberExistingVars: false, onlyExactPath: false));
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Render assigns the port at run time and expects the process to bind it.
+if (Environment.GetEnvironmentVariable("PORT") is { Length: > 0 } port)
+{
+    builder.WebHost.UseUrls($"http://+:{port}");
+}
 
 var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException(
@@ -95,7 +107,29 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 
+// Render terminates TLS at its proxy and forwards plain HTTP to the container.
+// Without this the app believes every request is http: UseHttpsRedirection
+// would bounce forever and the Secure cookie of D-20 would never be set.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor;
+    // The proxy address is not knowable ahead of time on a PaaS.
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
+
+app.UseForwardedHeaders();
+
+// The schema only ever changes through an EF Core migration (see CLAUDE.md),
+// and this is the same migration the team runs locally — applied on startup so
+// a deploy never leaves the container running against an older schema.
+// See docs/decisions.md, D-28.
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();
+}
 
 await AdminSeeder.SeedAsync(app.Services);
 
@@ -107,8 +141,24 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// D-26: one service serves the API and the compiled SPA, so that front and API
+// share an origin and the SameSite=Lax cookie of D-20 keeps working. The files
+// only exist in the published image; in development the Vite proxy does this.
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Render polls this to decide whether the deploy is live. It answers before
+// authentication on purpose — a health check that needs a login is useless.
+app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
+
+// Anything that is not an API route is a client-side route: hand back the
+// shell and let React Router resolve it. Without this, reloading /customers
+// in the browser would 404 in production but work in development.
+app.MapFallbackToFile("index.html");
 
 app.Run();

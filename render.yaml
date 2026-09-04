@@ -1,0 +1,54 @@
+# Infraestrutura como código do Render (Blueprint).
+#
+# Um único serviço web servindo a API e a SPA, mais o Postgres gerenciado —
+# é a D-26. Dois serviços separados colocariam front e API em origens
+# diferentes, e o cookie SameSite=Lax da D-20 deixaria de ser enviado: o login
+# passaria em desenvolvimento e falharia em produção.
+#
+# Como usar: no painel do Render, New > Blueprint, apontando para este repo.
+# O passo a passo completo está no README, em "Publicação".
+
+databases:
+  - name: syspitstops-db
+    databaseName: syspitstops
+    user: syspitstops
+    plan: free
+    postgresMajorVersion: '16'
+
+services:
+  - type: web
+    name: syspitstops
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # O Program.cs aplica as migrations na subida (D-28), então não há passo
+    # de release separado — o que também evita depender de plano pago.
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+
+      # O Render entrega a URL do banco em formato postgres://; o Npgsql quer
+      # o formato chave=valor. A conversão está no README.
+      - key: ConnectionStrings__Default
+        sync: false
+
+      - key: JWT__Issuer
+        value: syspitstops
+      - key: JWT__Audience
+        value: syspitstops
+      # generateValue cria um segredo aleatório na criação do serviço e nunca
+      # o mostra em log nem no blueprint.
+      - key: JWT__Secret
+        generateValue: true
+
+      # Sem estes dois não existe primeiro login (D-22). Preencher no painel,
+      # e trocar a senha no primeiro acesso.
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
