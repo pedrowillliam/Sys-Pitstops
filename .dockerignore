@@ -1,0 +1,27 @@
+# Tudo que não pode ou não precisa entrar na imagem.
+
+# Segredos: as variáveis de produção vêm do painel do Render, nunca do arquivo.
+.env
+.env.*
+!.env.example
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# Reconstruídos dentro da imagem
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/dev-dist/
+
+# Não fazem parte do build
+.git/
+.github/
+.vs/
+.vscode/
+.idea/
+design/
+docs/
+*.md
+!README.md
+**/TestResults/

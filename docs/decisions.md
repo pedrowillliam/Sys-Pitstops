@@ -277,3 +277,28 @@ front, e qualquer consulta que precise dessa ordem usa `CASE` explícito.
 **Motivo:** a ordem só afeta `ORDER BY` e operadores de comparação; o EF grava e
 lê pelo rótulo, então nada quebra. Forçar a ordem exigiria editar à mão o SQL que
 o Npgsql gera, o que é frágil e teria de ser repetido a cada mudança de enum.
+
+## D-28 — Migration aplicada na subida da aplicação
+**Data:** 2026-09-03
+**Decisão:** a aplicação chama `Database.MigrateAsync()` no startup, antes do
+seed do admin. Não há passo de release separado no deploy.
+**Alternativas:** `preDeployCommand` no Render rodando `dotnet ef database
+update`; aplicar a migration à mão a cada publicação.
+**Motivo:** o `preDeployCommand` do Render é recurso de plano pago, e a
+aplicação manual é o passo que alguém esquece — e aí o container sobe contra um
+schema velho e quebra em produção, não no deploy. Continua valendo a regra do
+`CLAUDE.md`: o schema só muda por migration do EF Core; isto só define *quando*
+ela roda. **Risco aceito:** com mais de uma instância, duas subidas simultâneas
+disputariam a migration. O MVP roda uma instância só; quando houver mais, isto
+vira um passo de release.
+
+## D-29 — Sem CORS, porque não há origem cruzada
+**Data:** 2026-09-03
+**Decisão:** o backend não configura CORS. Em desenvolvimento o proxy do Vite
+serve `/api`, e em produção o ASP.NET serve a SPA de `wwwroot`.
+**Alternativas:** habilitar CORS com lista de origens permitidas.
+**Motivo:** consequência direta da D-26. CORS só seria necessário se front e API
+ficassem em origens diferentes — e é exatamente esse arranjo que a D-26 rejeita,
+porque o cookie `SameSite=Lax` da D-20 não sobreviveria a ele. Adicionar CORS
+"por precaução" mascararia o dia em que alguém quebrasse essa mesma origem: em
+vez de falhar no navegador, o login passaria a falhar em silêncio.
