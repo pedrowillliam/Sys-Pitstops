@@ -105,7 +105,14 @@ builder.Services
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Without this every property comes out optional and nullable, and the
+    // TypeScript generated from it (D-17) would force a null check on fields
+    // the C# contract already guarantees.
+    options.SupportNonNullableReferenceTypes();
+    options.NonNullableReferenceTypesAsRequired();
+});
 
 // Render terminates TLS at its proxy and forwards plain HTTP to the container.
 // Without this the app believes every request is http: UseHttpsRedirection
