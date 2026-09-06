@@ -18,7 +18,7 @@ export const navigation: NavItem[] = [
   { to: '/service-orders', label: 'Kanban', roles: [], ready: false },
   { to: '/my-queue', label: 'Minha fila', roles: ['MECHANIC'], ready: false },
   { to: '/mechanics', label: 'Mecânicos', roles: ['ADMIN', 'ATTENDANT'], ready: false },
-  { to: '/customers', label: 'Clientes', roles: ['ADMIN', 'ATTENDANT'], ready: false },
+  { to: '/customers', label: 'Clientes', roles: ['ADMIN', 'ATTENDANT'], ready: true },
   { to: '/quotes', label: 'Orçamento', roles: ['ADMIN', 'ATTENDANT'], ready: false },
   { to: '/inventory', label: 'Estoque', roles: ['ADMIN', 'ATTENDANT'], ready: false },
   { to: '/settings', label: 'Configurações', roles: ['ADMIN'], ready: false },

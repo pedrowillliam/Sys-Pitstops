@@ -2,6 +2,8 @@ import { Navigate, createBrowserRouter, RouterProvider } from 'react-router'
 import { LoginPage } from './auth/LoginPage'
 import { RequireAuth, RequireRole } from './auth/RequireAuth'
 import { useSession } from './auth/session'
+import { CustomerFormPage } from './customers/CustomerFormPage'
+import { CustomersPage } from './customers/CustomersPage'
 import { AppShell } from './layout/AppShell'
 import { landingFor } from './layout/navigation'
 import { NotFound, Placeholder } from './pages/Placeholder'
@@ -56,7 +58,24 @@ const router = createBrowserRouter([
         path: 'customers',
         element: (
           <RequireRole allowed={desk}>
-            <Placeholder title="Clientes" waitingFor="o merge do PR de clientes e veículos" />
+            <CustomersPage />
+          </RequireRole>
+        ),
+      },
+      // `new` before `:id` so the literal wins the match.
+      {
+        path: 'customers/new',
+        element: (
+          <RequireRole allowed={desk}>
+            <CustomerFormPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: 'customers/:id',
+        element: (
+          <RequireRole allowed={desk}>
+            <CustomerFormPage />
           </RequireRole>
         ),
       },
