@@ -23,6 +23,15 @@ public record CustomerRequest
     public string? Notes { get; init; }
 }
 
+/// <summary>Enough of a vehicle to name it on the customer card. The full
+/// record lives behind /api/vehicles.</summary>
+public record CustomerVehicleSummary(
+    Guid Id,
+    string Plate,
+    string Brand,
+    string Model,
+    int? ModelYear);
+
 public record CustomerResponse(
     Guid Id,
     string Name,
@@ -31,6 +40,6 @@ public record CustomerResponse(
     string? Email,
     string? Notes,
     bool IsActive,
-    int VehicleCount,
+    IReadOnlyList<CustomerVehicleSummary> Vehicles,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);

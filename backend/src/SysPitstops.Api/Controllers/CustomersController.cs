@@ -14,12 +14,15 @@ namespace SysPitstops.Api.Controllers;
 [Authorize]
 public class CustomersController(AppDbContext db) : ControllerBase
 {
-    // Kept as an expression so the vehicle count becomes a subquery instead of
-    // loading every vehicle of every customer on the list screen.
     private static readonly Expression<Func<Customer, CustomerResponse>> ToResponse =
         c => new CustomerResponse(
             c.Id, c.Name, c.Phone, c.Document, c.Email, c.Notes, c.IsActive,
-            c.Vehicles.Count, c.CreatedAt, c.UpdatedAt);
+            c.Vehicles
+                .OrderBy(v => v.Brand)
+                .ThenBy(v => v.Model)
+                .Select(v => new CustomerVehicleSummary(v.Id, v.Plate, v.Brand, v.Model, v.ModelYear))
+                .ToList(),
+            c.CreatedAt, c.UpdatedAt);
 
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<CustomerResponse>), StatusCodes.Status200OK)]
@@ -101,7 +104,7 @@ public class CustomersController(AppDbContext db) : ControllerBase
 
         var response = new CustomerResponse(
             customer.Id, customer.Name, customer.Phone, customer.Document, customer.Email,
-            customer.Notes, customer.IsActive, 0, customer.CreatedAt, customer.UpdatedAt);
+            customer.Notes, customer.IsActive, [], customer.CreatedAt, customer.UpdatedAt);
 
         return CreatedAtAction(nameof(Get), new { id = customer.Id }, response);
     }
