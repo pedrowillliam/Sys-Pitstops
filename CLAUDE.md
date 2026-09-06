@@ -10,8 +10,16 @@ Projeto acadêmico (UFAPE, 2026.1), 3 pessoas, prazo curto. O MVP cobre o ciclo
 completo da Ordem de Serviço (OS): entrada do veículo → orçamento → execução →
 entrega.
 
-**Fase atual:** arquitetura/design. Ainda não há código — `backend/` e
-`frontend/` estão vazios. Não comece a implementar sem que isso seja pedido.
+**Estado em 2026-09-06:** em implementação.
+
+Prontos: schema e migrations, autenticação (JWT em cookie httpOnly), CRUD de
+clientes e veículos, PWA com login e navegação por papel, CI no GitHub Actions,
+e a infraestrutura de publicação (`Dockerfile` e `render.yaml`).
+
+Em aberto: as telas do front ainda são placeholder — só login e navegação
+funcionam. Falta a Ordem de Serviço inteira (API, Kanban e fila do mecânico),
+orçamento com link público, upload de fotos, estoque e dashboard. O serviço no
+Render ainda precisa ser criado à mão, seguindo o `README.md`.
 
 ## Stack
 
@@ -66,9 +74,11 @@ na transição para `READY`**, em transação única. Sem reserva de peça no MV
 ## Git
 
 - Branches: `main` (protegida, publicável), `feat/<escopo>`, `fix/<escopo>`,
-  `docs/<escopo>`. Na fase de arquitetura, commit direto na `main` é aceitável.
-- Toda mudança relevante entra por PR com ao menos uma aprovação; review parado
-  por 12h+ libera merge direto. PR referencia a issue.
+  `docs/<escopo>`.
+- Toda mudança entra por PR com ao menos uma aprovação; review parado por 12h+
+  libera merge direto. PR referencia a issue.
+- A CI (`.github/workflows/ci.yml`) roda em cada PR: testes do backend, lint e
+  build do front, e build da imagem de deploy.
 - Só faça commit/push quando pedido.
 
 ## API e tipos
@@ -77,10 +87,28 @@ O contrato da API é o Swagger gerado pelo ASP.NET (`/swagger`). O cliente
 TypeScript do front é **gerado a partir dele** — não escreva tipos de
 request/response à mão nos dois lados.
 
+Depois de mudar qualquer endpoint ou DTO, **regenere o cliente**:
+
+```bash
+# com a API rodando (dotnet run --project backend/src/SysPitstops.Api)
+cd frontend && npm run generate:api
+```
+
+Se isso for esquecido, o front segue com o contrato antigo e simplesmente não
+enxerga os endpoints novos — aconteceu entre os PRs #3 e #4.
+
+## Publicação
+
+Um **único serviço** no Render serve a API e a SPA compilada (D-26): front e API
+compartilham origem, e por isso não há CORS (D-29). A migration é aplicada no
+startup da aplicação (D-28). `Dockerfile` e `render.yaml` ficam na raiz.
+
 ## Design
 
 Telas no Figma (arquivo "Sys-PitStop", fileKey `jGZ6p2AhbpQAVcy7wV6K9o`).
-Mapear todas as telas só quando for implementar.
+As telas ainda são placeholder (`frontend/src/pages/Placeholder.tsx`); o menu e
+os papéis que enxergam cada item estão em `frontend/src/layout/navigation.ts`.
+Consulte o Figma ao implementar cada tela.
 
 ## Documentação de referência
 
