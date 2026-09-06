@@ -646,12 +646,12 @@ export interface components {
     schemas: {
         AuthenticatedUser: {
             /** Format: uuid */
-            id?: string;
-            name?: string | null;
-            email?: string | null;
-            role?: string | null;
+            id: string;
+            name: string;
+            email: string;
+            role: string;
             /** Format: int32 */
-            workshopId?: number;
+            workshopId: number;
         };
         CustomerRequest: {
             name: string;
@@ -663,28 +663,36 @@ export interface components {
         };
         CustomerResponse: {
             /** Format: uuid */
-            id?: string;
-            name?: string | null;
-            phone?: string | null;
+            id: string;
+            name: string;
+            phone: string;
             document?: string | null;
             email?: string | null;
             notes?: string | null;
-            isActive?: boolean;
-            /** Format: int32 */
-            vehicleCount?: number;
+            isActive: boolean;
+            vehicles: components["schemas"]["CustomerVehicleSummary"][];
             /** Format: date-time */
-            createdAt?: string;
+            createdAt: string;
             /** Format: date-time */
-            updatedAt?: string;
+            updatedAt: string;
         };
         CustomerResponsePagedResult: {
-            items?: components["schemas"]["CustomerResponse"][] | null;
+            items: components["schemas"]["CustomerResponse"][];
             /** Format: int32 */
-            page?: number;
+            page: number;
             /** Format: int32 */
-            pageSize?: number;
+            pageSize: number;
             /** Format: int32 */
-            total?: number;
+            total: number;
+        };
+        CustomerVehicleSummary: {
+            /** Format: uuid */
+            id: string;
+            plate: string;
+            brand: string;
+            model: string;
+            /** Format: int32 */
+            modelYear?: number | null;
         };
         LoginRequest: {
             email: string;
@@ -713,30 +721,30 @@ export interface components {
         };
         VehicleResponse: {
             /** Format: uuid */
-            id?: string;
+            id: string;
             /** Format: uuid */
-            ownerId?: string;
-            ownerName?: string | null;
-            plate?: string | null;
-            brand?: string | null;
-            model?: string | null;
+            ownerId: string;
+            ownerName: string;
+            plate: string;
+            brand: string;
+            model: string;
             /** Format: int32 */
             modelYear?: number | null;
             color?: string | null;
             vin?: string | null;
             /** Format: date-time */
-            createdAt?: string;
+            createdAt: string;
             /** Format: date-time */
-            updatedAt?: string;
+            updatedAt: string;
         };
         VehicleResponsePagedResult: {
-            items?: components["schemas"]["VehicleResponse"][] | null;
+            items: components["schemas"]["VehicleResponse"][];
             /** Format: int32 */
-            page?: number;
+            page: number;
             /** Format: int32 */
-            pageSize?: number;
+            pageSize: number;
             /** Format: int32 */
-            total?: number;
+            total: number;
         };
     };
     responses: never;

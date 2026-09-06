@@ -34,7 +34,7 @@ public class CustomersControllerTests
         Assert.Equal("52998224725", created.Document);
         Assert.Equal("joao@exemplo.com", created.Email);
         Assert.True(created.IsActive);
-        Assert.Equal(0, created.VehicleCount);
+        Assert.Empty(created.Vehicles);
         Assert.Single(db.Customers);
     }
 
@@ -185,7 +185,7 @@ public class CustomersControllerTests
     }
 
     [Fact]
-    public async Task CustomerCarriesTheVehicleCount()
+    public async Task CustomerCarriesItsVehicles()
     {
         var db = TestApi.NewDatabase();
         var customer = db.AddCustomer("Dono");
@@ -200,7 +200,11 @@ public class CustomersControllerTests
 
         var found = TestApi.Body(await new CustomersController(db).AsUser().Get(customer.Id, default));
 
-        Assert.Equal(1, found.VehicleCount);
+        var vehicle = Assert.Single(found.Vehicles);
+        Assert.Equal("Fiat", vehicle.Brand);
+        Assert.Equal("Uno", vehicle.Model);
+        // The controller normalises the plate; the card shows what was stored.
+        Assert.Equal("ABC1D23", vehicle.Plate);
     }
 }
 
