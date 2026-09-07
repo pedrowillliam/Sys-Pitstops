@@ -1,9 +1,12 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SysPitstops.Api.Auth;
+using SysPitstops.Api.Contracts;
 using SysPitstops.Api.Data;
 using SysPitstops.Api.Domain;
 
@@ -104,7 +107,19 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Same labels in the query string as in the body — see the binder's remarks.
+    options.ModelBinderProviders.Insert(0, new LabelEnumModelBinderProvider());
+}).AddJsonOptions(options =>
+{
+    // Enums travel as their database label — IN_YARD, not 4. Without this the
+    // wire format would silently change whenever a member is reordered, and
+    // the front would need a second copy of the labels. SnakeCaseUpper matches
+    // the [PgName] values exactly, so JSON, Postgres and the UI agree.
+    options.JsonSerializerOptions.Converters.Add(
+        new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseUpper));
+});
 builder.Services.AddSwaggerGen(options =>
 {
     // Without this every property comes out optional and nullable, and the
