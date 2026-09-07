@@ -396,6 +396,589 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/service-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["ServiceOrderStatus"];
+                    mechanicId?: string;
+                    vehicleId?: string;
+                    customerId?: string;
+                    openedFrom?: string;
+                    openedTo?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceOrderSummaryPagedResult"];
+                        "application/json": components["schemas"]["ServiceOrderSummaryPagedResult"];
+                        "text/json": components["schemas"]["ServiceOrderSummaryPagedResult"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["OpenServiceOrderRequest"];
+                    "text/json": components["schemas"]["OpenServiceOrderRequest"];
+                    "application/*+json": components["schemas"]["OpenServiceOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceOrderDetail"];
+                        "application/json": components["schemas"]["ServiceOrderDetail"];
+                        "text/json": components["schemas"]["ServiceOrderDetail"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/service-orders/my-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceOrderSummary"][];
+                        "application/json": components["schemas"]["ServiceOrderSummary"][];
+                        "text/json": components["schemas"]["ServiceOrderSummary"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/service-orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceOrderDetail"];
+                        "application/json": components["schemas"]["ServiceOrderDetail"];
+                        "text/json": components["schemas"]["ServiceOrderDetail"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateServiceOrderRequest"];
+                    "text/json": components["schemas"]["UpdateServiceOrderRequest"];
+                    "application/*+json": components["schemas"]["UpdateServiceOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceOrderDetail"];
+                        "application/json": components["schemas"]["ServiceOrderDetail"];
+                        "text/json": components["schemas"]["ServiceOrderDetail"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/service-orders/{id}/allowed-transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AllowedTransition"][];
+                        "application/json": components["schemas"]["AllowedTransition"][];
+                        "text/json": components["schemas"]["AllowedTransition"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/service-orders/{id}/diagnosis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateDiagnosisRequest"];
+                    "text/json": components["schemas"]["UpdateDiagnosisRequest"];
+                    "application/*+json": components["schemas"]["UpdateDiagnosisRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceOrderDetail"];
+                        "application/json": components["schemas"]["ServiceOrderDetail"];
+                        "text/json": components["schemas"]["ServiceOrderDetail"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/service-orders/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ChangeStatusRequest"];
+                    "text/json": components["schemas"]["ChangeStatusRequest"];
+                    "application/*+json": components["schemas"]["ChangeStatusRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceOrderDetail"];
+                        "application/json": components["schemas"]["ServiceOrderDetail"];
+                        "text/json": components["schemas"]["ServiceOrderDetail"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/service-orders/{id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ServiceOrderItemRequest"];
+                    "text/json": components["schemas"]["ServiceOrderItemRequest"];
+                    "application/*+json": components["schemas"]["ServiceOrderItemRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceOrderItemResponse"];
+                        "application/json": components["schemas"]["ServiceOrderItemResponse"];
+                        "text/json": components["schemas"]["ServiceOrderItemResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/service-orders/{id}/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ServiceOrderItemRequest"];
+                    "text/json": components["schemas"]["ServiceOrderItemRequest"];
+                    "application/*+json": components["schemas"]["ServiceOrderItemRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceOrderItemResponse"];
+                        "application/json": components["schemas"]["ServiceOrderItemResponse"];
+                        "text/json": components["schemas"]["ServiceOrderItemResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vehicles": {
         parameters: {
             query?: never;
@@ -644,6 +1227,10 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AllowedTransition: {
+            toStatus: components["schemas"]["ServiceOrderStatus"];
+            requiresNote: boolean;
+        };
         AuthenticatedUser: {
             /** Format: uuid */
             id: string;
@@ -652,6 +1239,11 @@ export interface components {
             role: string;
             /** Format: int32 */
             workshopId: number;
+        };
+        ChangeStatusRequest: {
+            toStatus: components["schemas"]["ServiceOrderStatus"];
+            note?: string | null;
+            waiveApproval: boolean;
         };
         CustomerRequest: {
             name: string;
@@ -694,9 +1286,20 @@ export interface components {
             /** Format: int32 */
             modelYear?: number | null;
         };
+        /** @enum {string} */
+        ItemType: "SERVICE" | "PART";
         LoginRequest: {
             email: string;
             password: string;
+        };
+        OpenServiceOrderRequest: {
+            /** Format: uuid */
+            vehicleId: string;
+            /** Format: int32 */
+            mileage?: number | null;
+            reportedIssue?: string | null;
+            /** Format: date-time */
+            scheduledAt?: string | null;
         };
         ProblemDetails: {
             type?: string | null;
@@ -707,6 +1310,129 @@ export interface components {
             instance?: string | null;
         } & {
             [key: string]: unknown;
+        };
+        ServiceOrderDetail: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            number: number;
+            status: components["schemas"]["ServiceOrderStatus"];
+            /** Format: uuid */
+            vehicleId: string;
+            vehiclePlate: string;
+            vehicleDescription: string;
+            /** Format: uuid */
+            customerId: string;
+            customerName: string;
+            customerPhone: string;
+            /** Format: uuid */
+            mechanicId?: string | null;
+            mechanicName?: string | null;
+            /** Format: int32 */
+            mileage?: number | null;
+            reportedIssue?: string | null;
+            diagnosis?: string | null;
+            approvalWaivedNote?: string | null;
+            /** Format: double */
+            itemsTotal: number;
+            /** Format: double */
+            discountAmount: number;
+            /** Format: double */
+            total: number;
+            items: components["schemas"]["ServiceOrderItemResponse"][];
+            history: components["schemas"]["ServiceOrderStatusChange"][];
+            /** Format: date-time */
+            openedAt: string;
+            /** Format: date-time */
+            scheduledAt?: string | null;
+            /** Format: date-time */
+            closedAt?: string | null;
+        };
+        ServiceOrderItemRequest: {
+            itemType: components["schemas"]["ItemType"];
+            /** Format: uuid */
+            partId?: string | null;
+            description: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+        };
+        ServiceOrderItemResponse: {
+            /** Format: uuid */
+            id: string;
+            itemType: components["schemas"]["ItemType"];
+            /** Format: uuid */
+            partId?: string | null;
+            description: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            total: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {string} */
+        ServiceOrderStatus: "REQUESTED" | "CONFIRMED" | "IN_YARD" | "AWAITING_APPROVAL" | "IN_PROGRESS" | "READY" | "DELIVERED" | "CANCELED";
+        ServiceOrderStatusChange: {
+            /** Format: uuid */
+            id: string;
+            fromStatus?: components["schemas"]["ServiceOrderStatus"];
+            toStatus: components["schemas"]["ServiceOrderStatus"];
+            changedByName: string;
+            note?: string | null;
+            /** Format: date-time */
+            changedAt: string;
+        };
+        ServiceOrderSummary: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            number: number;
+            status: components["schemas"]["ServiceOrderStatus"];
+            /** Format: uuid */
+            vehicleId: string;
+            vehiclePlate: string;
+            vehicleDescription: string;
+            /** Format: uuid */
+            customerId: string;
+            customerName: string;
+            /** Format: uuid */
+            mechanicId?: string | null;
+            mechanicName?: string | null;
+            /** Format: double */
+            total: number;
+            /** Format: date-time */
+            openedAt: string;
+            /** Format: date-time */
+            scheduledAt?: string | null;
+            /** Format: date-time */
+            closedAt?: string | null;
+        };
+        ServiceOrderSummaryPagedResult: {
+            items: components["schemas"]["ServiceOrderSummary"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            total: number;
+        };
+        UpdateDiagnosisRequest: {
+            diagnosis?: string | null;
+        };
+        UpdateServiceOrderRequest: {
+            /** Format: uuid */
+            mechanicId?: string | null;
+            /** Format: int32 */
+            mileage?: number | null;
+            reportedIssue?: string | null;
+            /** Format: double */
+            discountAmount: number;
+            /** Format: date-time */
+            scheduledAt?: string | null;
         };
         VehicleRequest: {
             /** Format: uuid */
