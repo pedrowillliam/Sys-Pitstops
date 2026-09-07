@@ -302,3 +302,29 @@ ficassem em origens diferentes — e é exatamente esse arranjo que a D-26 rejei
 porque o cookie `SameSite=Lax` da D-20 não sobreviveria a ele. Adicionar CORS
 "por precaução" mascararia o dia em que alguém quebrasse essa mesma origem: em
 vez de falhar no navegador, o login passaria a falhar em silêncio.
+
+## D-30 — Autenticação própria, e não o Supabase Auth
+**Data:** 2026-09-07
+**Decisão:** manter a autenticação própria da D-19, mesmo com o Supabase já em
+uso para as fotos (D-26). O Supabase Auth fica descartado.
+**Alternativas:** usar o Supabase Auth; mover o banco inteiro para o Supabase,
+que tornaria a integração coerente.
+**Motivo:** o Supabase Auth guarda os usuários no Postgres **dele**, e o banco da
+aplicação é o do Render — e um banco não referencia tabela de outro. Como sete
+chaves estrangeiras apontam para `users` (mecânico e criador da OS, autor do
+item, autor da transição, quem subiu a mídia, quem enviou o orçamento, autor do
+movimento de estoque), a tabela local seria necessária de qualquer forma, e
+sobraria o trabalho de sincronizar os dois lados. Além disso, os papéis são
+regra de negócio: quem pode fazer cada transição está no §5 do `data-model.md`,
+não num provedor de identidade.
+
+## D-31 — CI no GitHub Actions verificando cada PR
+**Data:** 2026-09-07
+**Decisão:** um workflow roda a cada pull request e a cada push na `main`:
+testes do backend, lint e build do front, e build da imagem de deploy.
+**Alternativas:** nenhuma verificação automática; verificar só o backend.
+**Motivo:** o `README.md` libera merge sem revisão quando o review para por mais
+de 12 horas — sem verificação automática, esse merge é às cegas. O build da
+imagem entra porque é ela que o Render publica (D-26): um `Dockerfile` quebrado
+precisa falhar no PR, não no deploy. O workflow dispensa subir um Postgres como
+serviço porque, por D-24, os testes não dependem de banco.

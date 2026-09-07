@@ -107,6 +107,12 @@ passo manual no deploy.
 
 ## Publicação
 
+O sistema está no ar em **https://syspitstops.onrender.com**.
+
+O plano gratuito hiberna o serviço após alguns minutos sem tráfego, então o
+primeiro acesso depois de uma pausa demora. Antes de uma apresentação, abra o
+sistema com antecedência para acordá-lo.
+
 Um **único serviço** no Render: o ASP.NET serve a API e a SPA já compilada, mais
 o Postgres gerenciado (D-26). Dois serviços separados colocariam front e API em
 origens diferentes e o cookie `SameSite=Lax` deixaria de ser enviado — o login
@@ -126,7 +132,10 @@ docker run --rm -p 8080:10000 -e PORT=10000 \
 # http://localhost:8080
 ```
 
-### Criar o serviço no Render (uma vez)
+### Criar o serviço no Render
+
+Já foi feito uma vez. O passo a passo fica registrado porque o Postgres gratuito
+expira, e recriá-lo exige refazer os passos 2 e 3.
 
 1. **New → Blueprint**, apontando para este repositório. O Render lê o
    `render.yaml` e propõe criar o serviço web e o banco.
@@ -162,8 +171,8 @@ o passo 2. Para a banca do projeto, vale conferir isso na véspera.
 
 ## Convenções
 
-**Idioma.** Código, banco de dados, nomes de rotas e commits em **inglês**.
-Interface e documentação em **português**.
+**Idioma.** Código, banco de dados e nomes de rotas em **inglês**. Interface,
+documentação, corpo de PR e mensagens de commit em **português**.
 
 **Tipos.** Dinheiro em `numeric(12,2)` no banco e `decimal` no C# — nunca
 `float` ou `double`. Datas em `timestamptz`, sempre em UTC; conversão de fuso
@@ -178,12 +187,13 @@ fix/<escopo>              correção
 docs/<escopo>             documentação
 ```
 
-**Commits.** Conventional Commits, em inglês e no imperativo.
+**Commits.** Conventional Commits, com o texto em **português** e no imperativo.
+O tipo (`feat`, `fix`, `docs`, `chore`, `ci`) permanece em inglês.
 
 ```
-feat(service-order): add status transition endpoint
-fix(stock): prevent negative quantity on write-off
-docs(readme): add setup instructions
+feat(service-orders): adiciona a máquina de estados da OS com testes
+fix(api): usa KnownIPNetworks no lugar da API obsoleta
+docs: registra ordem alfabética dos enums (D-27)
 ```
 
 **Pull requests.** Toda mudança entra por PR com pelo menos uma aprovação.

@@ -10,16 +10,16 @@ Projeto acadêmico (UFAPE, 2026.1), 3 pessoas, prazo curto. O MVP cobre o ciclo
 completo da Ordem de Serviço (OS): entrada do veículo → orçamento → execução →
 entrega.
 
-**Estado em 2026-09-06:** em implementação.
+**Estado em 2026-09-07:** em implementação, Semana 2 do cronograma.
 
-Prontos: schema e migrations, autenticação (JWT em cookie httpOnly), CRUD de
-clientes e veículos, PWA com login e navegação por papel, CI no GitHub Actions,
-e a infraestrutura de publicação (`Dockerfile` e `render.yaml`).
+Prontos: schema e migrations, autenticação (JWT em cookie httpOnly), CRUD e tela
+de clientes e veículos, PWA com login e navegação por papel, CI no GitHub
+Actions, e o sistema **publicado e no ar** em https://syspitstops.onrender.com.
 
-Em aberto: as telas do front ainda são placeholder — só login e navegação
-funcionam. Falta a Ordem de Serviço inteira (API, Kanban e fila do mecânico),
-orçamento com link público, upload de fotos, estoque e dashboard. O serviço no
-Render ainda precisa ser criado à mão, seguindo o `README.md`.
+Em aberto: a Ordem de Serviço. A máquina de estados já existe e está testada
+(`ServiceOrderWorkflow`), mas **nenhum endpoint a chama ainda** — falta a API da
+OS, o Kanban e a fila do mecânico. Depois vêm orçamento com link público, upload
+de fotos, estoque e dashboard.
 
 ## Stack
 
@@ -106,9 +106,16 @@ startup da aplicação (D-28). `Dockerfile` e `render.yaml` ficam na raiz.
 ## Design
 
 Telas no Figma (arquivo "Sys-PitStop", fileKey `jGZ6p2AhbpQAVcy7wV6K9o`).
-As telas ainda são placeholder (`frontend/src/pages/Placeholder.tsx`); o menu e
-os papéis que enxergam cada item estão em `frontend/src/layout/navigation.ts`.
-Consulte o Figma ao implementar cada tela.
+A tela de Clientes está implementada em `frontend/src/customers/`; as demais
+ainda são placeholder (`frontend/src/pages/Placeholder.tsx`). O menu e os papéis
+que enxergam cada item estão em `frontend/src/layout/navigation.ts`, com a flag
+`ready` marcando o que já existe.
+
+**Consulte o Figma ao implementar cada tela.** O arquivo tem bem mais frames do
+que os nomes de rota sugerem — além de Kanban, Dashboard e Mecânicos, há
+`Cadastro serviço`, `Cadastro Estoque`, `Cotação`, `Orçamento` e as telas
+`Mobile - Mecânico`. O `AppShell` atual ainda **diverge** do protótipo, que tem
+barra lateral flutuante de ícones e busca global no topo.
 
 ## Documentação de referência
 
