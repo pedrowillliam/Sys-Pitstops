@@ -536,6 +536,9 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
                 // D-09: the total is computed, never stored.
                 ItemsTotal = o.Items.Sum(i => i.Quantity * i.UnitPrice),
                 o.DiscountAmount,
+                // D-32: the board splits "awaiting approval" from "approved"
+                // without a status of its own.
+                HasApprovedQuote = o.Quotes.Any(q => q.Status == QuoteStatus.Approved),
                 o.OpenedAt,
                 o.ScheduledAt,
                 o.ClosedAt
@@ -554,6 +557,7 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
             r.MechanicId,
             r.MechanicName,
             r.ItemsTotal - r.DiscountAmount,
+            r.HasApprovedQuote,
             r.OpenedAt,
             r.ScheduledAt,
             r.ClosedAt)).ToList();
@@ -698,16 +702,4 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
 
     private static string? Blank(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-    private ObjectResult Pending() =>
-        new(new ProblemDetails
-        {
-            Status = StatusCodes.Status501NotImplemented,
-            Title = "Endpoint ainda não implementado.",
-            Detail = "O contrato está publicado para gerar o cliente TypeScript (D-18); "
-                + "a lógica entra nos próximos PRs da Semana 2."
-        })
-        {
-            StatusCode = StatusCodes.Status501NotImplemented
-        };
 }

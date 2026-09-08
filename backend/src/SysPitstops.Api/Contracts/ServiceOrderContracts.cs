@@ -103,6 +103,7 @@ public record ServiceOrderSummary(
     Guid? MechanicId,
     string? MechanicName,
     decimal Total,
+    bool HasApprovedQuote,
     DateTimeOffset OpenedAt,
     DateTimeOffset? ScheduledAt,
     DateTimeOffset? ClosedAt);
@@ -117,8 +118,6 @@ public record ServiceOrderItemResponse(
     decimal Total,
     DateTimeOffset CreatedAt);
 
-/// <summary>One line of service_order_status_history. FromStatus is null on the
-/// first entry, which is what distinguishes "opened" from "moved".</summary>
 public record ServiceOrderStatusChange(
     Guid Id,
     ServiceOrderStatus? FromStatus,
@@ -152,7 +151,4 @@ public record ServiceOrderDetail(
     DateTimeOffset? ScheduledAt,
     DateTimeOffset? ClosedAt);
 
-/// <summary>Where the order may go next, already filtered by who is asking.
-/// The board uses it to decide which buttons to show instead of guessing the
-/// rules a second time in TypeScript.</summary>
 public record AllowedTransition(ServiceOrderStatus ToStatus, bool RequiresNote);
