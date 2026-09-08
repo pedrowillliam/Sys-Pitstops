@@ -146,34 +146,243 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = order.Id }, created);
     }
 
+    /// <summary>Front desk fields. Assigning the mechanic matters beyond the
+    /// KPI: without one, nobody but the admin can take the order to READY.</summary>
     [HttpPut("{id:guid}")]
     [Authorize(Roles = Roles.Desk)]
     [ProducesResponseType(typeof(ServiceOrderDetail), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<ServiceOrderDetail> Update(
-        Guid id, UpdateServiceOrderRequest request, CancellationToken ct) => Pending();
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ServiceOrderDetail>> Update(
+        Guid id, UpdateServiceOrderRequest request, CancellationToken ct)
+    {
+        var order = await Editable(id, ct);
+        if (order is null)
+        {
+            return OrderNotFound();
+        }
 
+        if (ServiceOrderWorkflow.IsFinal(order.Status))
+        {
+            return OrderIsClosed(order.Status);
+        }
+
+        if (request.MechanicId is { } mechanicId)
+        {
+            var isMechanic = await db.Users.AnyAsync(
+                u => u.Id == mechanicId
+                  && u.WorkshopId == order.WorkshopId
+                  && u.IsActive
+                  && u.Role == UserRole.Mechanic, ct);
+
+            if (!isMechanic)
+            {
+                ModelState.AddModelError(
+                    nameof(request.MechanicId), "Mecânico não encontrado ou inativo.");
+                return ValidationProblem(ModelState);
+            }
+        }
+
+        order.MechanicId = request.MechanicId;
+        order.Mileage = request.Mileage;
+        order.ReportedIssue = Blank(request.ReportedIssue);
+        order.DiscountAmount = request.DiscountAmount;
+        order.ScheduledAt = request.ScheduledAt;
+        order.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await db.SaveChangesAsync(ct);
+
+        return Ok(await Describe(order.Id, ct));
+    }
+
+    /// <summary>Separate from the update above because this one is the
+    /// mechanic's, written from the yard — and the front desk fields are not.</summary>
     [HttpPut("{id:guid}/diagnosis")]
     [ProducesResponseType(typeof(ServiceOrderDetail), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<ServiceOrderDetail> UpdateDiagnosis(
-        Guid id, UpdateDiagnosisRequest request, CancellationToken ct) => Pending();
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ServiceOrderDetail>> UpdateDiagnosis(
+        Guid id, UpdateDiagnosisRequest request, CancellationToken ct)
+    {
+        var order = await Editable(id, ct);
+        if (order is null)
+        {
+            return OrderNotFound();
+        }
 
+        if (ServiceOrderWorkflow.IsFinal(order.Status))
+        {
+            return OrderIsClosed(order.Status);
+        }
+
+        var role = User.Role();
+        var mayWrite = role is UserRole.Admin or UserRole.Attendant
+            || (role == UserRole.Mechanic && order.MechanicId == User.Id());
+
+        if (!mayWrite)
+        {
+            return Forbid();
+        }
+
+        order.Diagnosis = Blank(request.Diagnosis);
+        order.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await db.SaveChangesAsync(ct);
+
+        return Ok(await Describe(order.Id, ct));
+    }
+
+    /// <summary>
+    /// Runs the same workflow against every reachable status and returns only
+    /// what this user may do. The board reads it to decide which buttons to
+    /// show, instead of carrying a second copy of the rules in TypeScript.
+    /// </summary>
     [HttpGet("{id:guid}/allowed-transitions")]
     [ProducesResponseType(typeof(IReadOnlyList<AllowedTransition>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<IReadOnlyList<AllowedTransition>> AllowedTransitions(
-        Guid id, CancellationToken ct) => Pending();
+    public async Task<ActionResult<IReadOnlyList<AllowedTransition>>> AllowedTransitions(
+        Guid id, CancellationToken ct)
+    {
+        var workshopId = User.WorkshopId();
 
+        var order = await db.ServiceOrders.AsNoTracking()
+            .Where(o => o.Id == id && o.WorkshopId == workshopId)
+            .Select(o => new { o.Id, o.Status, o.MechanicId })
+            .SingleOrDefaultAsync(ct);
+
+        if (order is null)
+        {
+            return OrderNotFound();
+        }
+
+        var role = User.Role();
+        var isAssigned = order.MechanicId is not null && order.MechanicId == User.Id();
+        var hasQuote = await HasApprovedQuote(order.Id, ct);
+
+        List<ServiceOrderStatus> reachable = [];
+
+        if (ServiceOrderWorkflow.Next(order.Status) is { } next)
+        {
+            reachable.Add(next);
+        }
+
+        if (ServiceOrderWorkflow.CanBeCanceled(order.Status))
+        {
+            reachable.Add(ServiceOrderStatus.Canceled);
+        }
+
+        List<AllowedTransition> allowed = [];
+
+        foreach (var target in reachable)
+        {
+            var plain = new ServiceOrderTransition(
+                order.Status, target, role, isAssigned, hasQuote, WaivesApproval: false);
+
+            if (ServiceOrderWorkflow.Check(plain).Allowed)
+            {
+                allowed.Add(new AllowedTransition(target, RequiresNote: false));
+                continue;
+            }
+
+            // Only reachable by waiving the quote (D-13), which the admin may do
+            // as long as the reason is written down — hence RequiresNote.
+            var waiving = plain with { WaivesApproval = true };
+
+            if (ServiceOrderWorkflow.Check(waiving).Allowed)
+            {
+                allowed.Add(new AllowedTransition(target, RequiresNote: true));
+            }
+        }
+
+        return Ok(allowed);
+    }
+
+    /// <summary>
+    /// Resolves the facts the workflow asks for, applies its verdict and records
+    /// the move in service_order_status_history. The rules themselves live in
+    /// ServiceOrderWorkflow — this only gathers the evidence and writes down what
+    /// happened.
+    /// </summary>
     [HttpPost("{id:guid}/status")]
     [ProducesResponseType(typeof(ServiceOrderDetail), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public ActionResult<ServiceOrderDetail> ChangeStatus(
-        Guid id, ChangeStatusRequest request, CancellationToken ct) => Pending();
+    public async Task<ActionResult<ServiceOrderDetail>> ChangeStatus(
+        Guid id, ChangeStatusRequest request, CancellationToken ct)
+    {
+        var order = await Editable(id, ct);
+        if (order is null)
+        {
+            return OrderNotFound();
+        }
+
+        var note = Blank(request.Note);
+
+        // D-13 only allows the waiver when the reason is recorded, so an empty
+        // note makes the request invalid rather than silently unaudited.
+        if (request.WaiveApproval && note is null)
+        {
+            ModelState.AddModelError(
+                nameof(request.Note),
+                "Informe o motivo da dispensa de aprovação do orçamento.");
+            return ValidationProblem(ModelState);
+        }
+
+        var verdict = ServiceOrderWorkflow.Check(new ServiceOrderTransition(
+            order.Status,
+            request.ToStatus,
+            User.Role(),
+            IsAssignedMechanic: order.MechanicId is not null && order.MechanicId == User.Id(),
+            HasApprovedQuote: await HasApprovedQuote(order.Id, ct),
+            WaivesApproval: request.WaiveApproval));
+
+        if (!verdict.Allowed)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = verdict.Reason
+            });
+        }
+
+        var now = DateTimeOffset.UtcNow;
+
+        db.ServiceOrderStatusHistory.Add(new ServiceOrderStatusHistory
+        {
+            ServiceOrderId = order.Id,
+            FromStatus = order.Status,
+            ToStatus = request.ToStatus,
+            ChangedBy = User.Id(),
+            Note = note,
+            ChangedAt = now
+        });
+
+        if (request.WaiveApproval)
+        {
+            order.ApprovalWaivedNote = note;
+        }
+
+        // The revenue query of data-model.md, section 6, reads closed_at for
+        // orders in READY and DELIVERED, so the work finishing is what closes
+        // the order. Cancelling leaves it null: nothing was concluded.
+        if (request.ToStatus == ServiceOrderStatus.Ready)
+        {
+            order.ClosedAt = now;
+
+            // D-11 writes the stock off here, in this same transaction. That
+            // lands in the stock pull request of week 3.
+        }
+
+        order.Status = request.ToStatus;
+        order.UpdatedAt = now;
+
+        await db.SaveChangesAsync(ct);
+
+        return Ok(await Describe(order.Id, ct));
+    }
 
     [HttpPost("{id:guid}/items")]
     [Authorize(Roles = Roles.Desk)]
@@ -458,11 +667,25 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         Title = "Ordem de serviço não encontrada."
     });
 
+    /// <summary>Always false during week 2: the quotes table exists but nothing
+    /// writes to it yet. The transition rule is already in place waiting for it
+    /// (D-13), so only the admin waiver can start the work for now.</summary>
+    private Task<bool> HasApprovedQuote(Guid orderId, CancellationToken ct) =>
+        db.Quotes.AnyAsync(
+            q => q.ServiceOrderId == orderId && q.Status == QuoteStatus.Approved, ct);
+
     private NotFoundObjectResult ItemNotFound() => NotFound(new ProblemDetails
     {
         Status = StatusCodes.Status404NotFound,
         Title = "Item não encontrado nesta ordem de serviço."
     });
+
+    private ConflictObjectResult OrderIsClosed(ServiceOrderStatus status) => Conflict(
+        new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = $"A ordem de serviço está em {status.ToPgName()} e não pode mais ser alterada."
+        });
 
     private ConflictObjectResult ItemsAreClosed(ServiceOrderStatus status) => Conflict(
         new ProblemDetails

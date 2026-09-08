@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using SysPitstops.Api.Domain;
 
 namespace SysPitstops.Api.Auth;
 
@@ -11,6 +12,14 @@ public static class CurrentUser
         Guid.TryParse(principal.FindFirst(TokenService.SubjectClaim)?.Value, out var id)
             ? id
             : Guid.Empty;
+
+    /// <summary>An unreadable role falls back to the least privileged one: the
+    /// workflow then refuses the transition instead of allowing it by accident.</summary>
+    public static UserRole Role(this ClaimsPrincipal principal) =>
+        EnumExtensions.TryParseLabel(
+            typeof(UserRole), principal.FindFirst(TokenService.RoleClaim)?.Value, out var role)
+            ? (UserRole)role!
+            : UserRole.Mechanic;
 
     public static int WorkshopId(this ClaimsPrincipal principal) =>
         int.TryParse(principal.FindFirst(TokenService.WorkshopClaim)?.Value, out var workshopId)
