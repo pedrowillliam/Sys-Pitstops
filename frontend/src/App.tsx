@@ -4,6 +4,7 @@ import { RequireAuth, RequireRole } from './auth/RequireAuth'
 import { useSession } from './auth/session'
 import { CustomerFormPage } from './customers/CustomerFormPage'
 import { CustomersPage } from './customers/CustomersPage'
+import { KanbanPage } from './service-orders/KanbanPage'
 import { AppShell } from './layout/AppShell'
 import { landingFor } from './layout/navigation'
 import { NotFound, Placeholder } from './pages/Placeholder'
@@ -36,7 +37,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'service-orders',
-        element: <Placeholder title="Kanban" waitingFor="a API de ordens de serviço" />,
+        element: <KanbanPage />,
       },
       {
         path: 'my-queue',

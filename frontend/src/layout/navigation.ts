@@ -15,7 +15,7 @@ export type NavItem = {
 // mecânico lê é que é em português.
 export const navigation: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', roles: ['ADMIN'], ready: false },
-  { to: '/service-orders', label: 'Kanban', roles: [], ready: false },
+  { to: '/service-orders', label: 'Kanban', roles: [], ready: true },
   { to: '/my-queue', label: 'Minha fila', roles: ['MECHANIC'], ready: false },
   { to: '/mechanics', label: 'Mecânicos', roles: ['ADMIN', 'ATTENDANT'], ready: false },
   { to: '/customers', label: 'Clientes', roles: ['ADMIN', 'ATTENDANT'], ready: true },
