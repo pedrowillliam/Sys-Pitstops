@@ -53,12 +53,127 @@ internal static class TestApi
         return customer;
     }
 
+    public static User AddUser(
+        this AppDbContext db, string name = "Usuário", UserRole role = UserRole.Admin)
+    {
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            WorkshopId = WorkshopId,
+            Name = name,
+            Email = $"{Guid.NewGuid():N}@teste",
+            PasswordHash = "hash",
+            Role = role,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+
+        db.Users.Add(user);
+        db.SaveChanges();
+
+        return user;
+    }
+
+    public static Vehicle AddVehicle(
+        this AppDbContext db,
+        Customer owner,
+        string plate = "ABC1D23",
+        string brand = "Fiat",
+        string model = "Uno",
+        int? modelYear = null)
+    {
+        var vehicle = new Vehicle
+        {
+            Id = Guid.NewGuid(),
+            WorkshopId = WorkshopId,
+            OwnerId = owner.Id,
+            Plate = plate,
+            Brand = brand,
+            Model = model,
+            ModelYear = modelYear,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+
+        db.Vehicles.Add(vehicle);
+        db.SaveChanges();
+
+        return vehicle;
+    }
+
+    public static ServiceOrder AddServiceOrder(
+        this AppDbContext db,
+        ServiceOrderStatus status = ServiceOrderStatus.Requested,
+        User? mechanic = null,
+        decimal discount = 0m)
+    {
+        var owner = db.AddCustomer();
+        var vehicle = db.AddVehicle(owner, $"P{Random.Shared.Next(100000, 999999)}");
+        var author = db.AddUser();
+        var now = DateTimeOffset.UtcNow;
+
+        var order = new ServiceOrder
+        {
+            Id = Guid.NewGuid(),
+            WorkshopId = WorkshopId,
+            VehicleId = vehicle.Id,
+            CustomerId = owner.Id,
+            MechanicId = mechanic?.Id,
+            CreatedBy = author.Id,
+            Status = status,
+            DiscountAmount = discount,
+            OpenedAt = now,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        db.ServiceOrders.Add(order);
+        db.SaveChanges();
+
+        return order;
+    }
+
+    public static ServiceOrderItem AddItem(
+        this AppDbContext db,
+        ServiceOrder order,
+        string description,
+        decimal quantity,
+        decimal unitPrice)
+    {
+        var item = new ServiceOrderItem
+        {
+            Id = Guid.NewGuid(),
+            ServiceOrderId = order.Id,
+            ItemType = ItemType.Service,
+            Description = description,
+            Quantity = quantity,
+            UnitPrice = unitPrice,
+            CreatedBy = order.CreatedBy,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        db.ServiceOrderItems.Add(item);
+        db.SaveChanges();
+
+        return item;
+    }
+
     public static TController AsUser<TController>(
-        this TController controller, string role = Roles.Admin) where TController : ControllerBase
+        this TController controller, User user) where TController : ControllerBase =>
+        controller.AsUser(user.Role switch
+        {
+            UserRole.Attendant => Roles.Attendant,
+            UserRole.Mechanic => Roles.Mechanic,
+            _ => Roles.Admin
+        }, user.Id);
+
+    public static TController AsUser<TController>(
+        this TController controller, string role = Roles.Admin, Guid? userId = null)
+        where TController : ControllerBase
     {
         var identity = new ClaimsIdentity(
         [
-            new Claim(TokenService.SubjectClaim, Guid.NewGuid().ToString()),
+            new Claim(TokenService.SubjectClaim, (userId ?? Guid.NewGuid()).ToString()),
             new Claim(TokenService.RoleClaim, role),
             new Claim(TokenService.WorkshopClaim, WorkshopId.ToString())
         ], "Test");
