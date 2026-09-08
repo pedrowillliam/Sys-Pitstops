@@ -133,6 +133,13 @@ gera os `stock_movements` do tipo `OUT` e atualiza `quantity_on_hand`. Não há
 reserva no MVP — uma peça pode ser prometida a duas OS simultâneas, risco aceito
 em troca de simplicidade. A reserva entra na Fase 2.
 
+**Os itens congelam a partir de `READY`.** Adicionar, editar ou remover item só
+é possível enquanto a OS está em `REQUESTED`, `CONFIRMED`, `IN_YARD`,
+`AWAITING_APPROVAL` ou `IN_PROGRESS`. É consequência direta da regra acima: como
+a baixa já aconteceu, mexer na lista depois deixaria `stock_movements`
+discordando do que a OS diz que foi usado — e não haveria como saber qual dos
+dois está certo. A tentativa devolve `409`.
+
 **Uma OS tem um mecânico responsável** (`mechanic_id`). Múltiplos mecânicos por
 OS ficam para a Fase 2; o KPI de produtividade por funcionário usa esse campo.
 
