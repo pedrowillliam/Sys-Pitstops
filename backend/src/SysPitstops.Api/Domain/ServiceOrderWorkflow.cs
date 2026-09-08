@@ -34,6 +34,9 @@ public static class ServiceOrderWorkflow
     public static bool CanBeCanceled(ServiceOrderStatus status) =>
         !IsFinal(status) && status != ServiceOrderStatus.Ready;
 
+    public static bool AllowsItemChanges(ServiceOrderStatus status) =>
+        !IsFinal(status) && status != ServiceOrderStatus.Ready;
+
     public static ServiceOrderStatus? Next(ServiceOrderStatus status)
     {
         var index = Array.IndexOf(Flow, status);
