@@ -328,3 +328,26 @@ de 12 horas — sem verificação automática, esse merge é às cegas. O build 
 imagem entra porque é ela que o Render publica (D-26): um `Dockerfile` quebrado
 precisa falhar no PR, não no deploy. O workflow dispensa subir um Postgres como
 serviço porque, por D-24, os testes não dependem de banco.
+
+## D-32 — A coluna "Aprovado" do Kanban é derivada, não um status
+**Data:** 2026-09-07
+**Decisão:** o quadro do protótipo tem uma coluna "Aprovado" entre "Aprovação do
+Orçamento" e "Em Execução". Ela não vira status novo: mostra as OS em
+`AWAITING_APPROVAL` que já têm orçamento aprovado. O `ServiceOrderSummary` ganha
+`hasApprovedQuote` para o front distinguir as duas colunas.
+**Alternativas:** criar o status `APPROVED` no enum; ou não ter a coluna.
+**Motivo:** o status novo custaria migration, mudança na máquina de estados e
+revisão dos 36 testes dela, a três semanas do fim — e a D-27 já mostrou o preço
+de mexer no enum. A derivação entrega a mesma leitura para o atendente sem tocar
+no modelo. **Consequência:** na Semana 2 a coluna fica sempre vazia, porque
+orçamento só existe na Semana 3.
+
+## D-33 — Sem prioridade de OS no MVP
+**Data:** 2026-09-07
+**Decisão:** o filtro "Todas Prioridades" do protótipo do Kanban não é
+implementado, e `service_orders` não ganha coluna de prioridade.
+**Alternativas:** acrescentar a coluna e o filtro.
+**Motivo:** prioridade não aparece no schema, no `data-model.md` nem em nenhuma
+decisão anterior — é escopo que entrou pelo desenho. Acrescentar campo de
+domínio a três semanas do fim contraria a D-01, e o quadro é legível sem ele.
+Fica para a Fase 2.
