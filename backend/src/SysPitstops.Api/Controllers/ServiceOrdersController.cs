@@ -69,8 +69,6 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         return Ok(new PagedResult<ServiceOrderSummary>(items, currentPage, size, total));
     }
 
-    /// <summary>The orders assigned to whoever is signed in. Delivered and
-    /// cancelled ones are left out: the queue is what is still to do.</summary>
     [HttpGet("my-queue")]
     [ProducesResponseType(typeof(IReadOnlyList<ServiceOrderSummary>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<ServiceOrderSummary>>> MyQueue(CancellationToken ct)
@@ -97,11 +95,6 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         return order is null ? OrderNotFound() : Ok(order);
     }
 
-    /// <summary>
-    /// The customer is copied from the vehicle owner and frozen on the order
-    /// (D-08): selling the car later must not rewrite who was served today.
-    /// The number comes from the database sequence, never from a count.
-    /// </summary>
     [HttpPost]
     [Authorize(Roles = Roles.Desk)]
     [ProducesResponseType(typeof(ServiceOrderDetail), StatusCodes.Status201Created)]
@@ -138,9 +131,6 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
 
         db.ServiceOrders.Add(order);
 
-        // The opening is a history entry too. FromStatus stays null, which is
-        // what tells "opened" apart from "moved" when the average execution
-        // time is computed later.
         db.ServiceOrderStatusHistory.Add(new ServiceOrderStatusHistory
         {
             ServiceOrder = order,
@@ -190,22 +180,123 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
     [ProducesResponseType(typeof(ServiceOrderItemResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<ServiceOrderItemResponse> AddItem(
-        Guid id, ServiceOrderItemRequest request, CancellationToken ct) => Pending();
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ServiceOrderItemResponse>> AddItem(
+        Guid id, ServiceOrderItemRequest request, CancellationToken ct)
+    {
+        var order = await Editable(id, ct);
+        if (order is null)
+        {
+            return OrderNotFound();
+        }
+
+        if (!ServiceOrderWorkflow.AllowsItemChanges(order.Status))
+        {
+            return ItemsAreClosed(order.Status);
+        }
+
+        if (!await ValidatePart(request, ct))
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var item = new ServiceOrderItem
+        {
+            ServiceOrderId = order.Id,
+            ItemType = request.ItemType,
+            PartId = request.PartId,
+            Description = request.Description.Trim(),
+            Quantity = request.Quantity,
+            UnitPrice = request.UnitPrice,
+            CreatedBy = User.Id(),
+            CreatedAt = now
+        };
+
+        db.ServiceOrderItems.Add(item);
+        order.UpdatedAt = now;
+        await db.SaveChangesAsync(ct);
+
+        return CreatedAtAction(nameof(Get), new { id = order.Id }, Describe(item));
+    }
 
     [HttpPut("{id:guid}/items/{itemId:guid}")]
     [Authorize(Roles = Roles.Desk)]
     [ProducesResponseType(typeof(ServiceOrderItemResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<ServiceOrderItemResponse> UpdateItem(
-        Guid id, Guid itemId, ServiceOrderItemRequest request, CancellationToken ct) => Pending();
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ServiceOrderItemResponse>> UpdateItem(
+        Guid id, Guid itemId, ServiceOrderItemRequest request, CancellationToken ct)
+    {
+        var order = await Editable(id, ct);
+        if (order is null)
+        {
+            return OrderNotFound();
+        }
+
+        if (!ServiceOrderWorkflow.AllowsItemChanges(order.Status))
+        {
+            return ItemsAreClosed(order.Status);
+        }
+
+        var item = await db.ServiceOrderItems
+            .SingleOrDefaultAsync(i => i.Id == itemId && i.ServiceOrderId == order.Id, ct);
+
+        if (item is null)
+        {
+            return ItemNotFound();
+        }
+
+        if (!await ValidatePart(request, ct))
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        item.ItemType = request.ItemType;
+        item.PartId = request.PartId;
+        item.Description = request.Description.Trim();
+        item.Quantity = request.Quantity;
+        item.UnitPrice = request.UnitPrice;
+        order.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await db.SaveChangesAsync(ct);
+
+        return Ok(Describe(item));
+    }
 
     [HttpDelete("{id:guid}/items/{itemId:guid}")]
     [Authorize(Roles = Roles.Desk)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult DeleteItem(Guid id, Guid itemId, CancellationToken ct) => Pending();
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DeleteItem(Guid id, Guid itemId, CancellationToken ct)
+    {
+        var order = await Editable(id, ct);
+        if (order is null)
+        {
+            return OrderNotFound();
+        }
+
+        if (!ServiceOrderWorkflow.AllowsItemChanges(order.Status))
+        {
+            return ItemsAreClosed(order.Status);
+        }
+
+        var item = await db.ServiceOrderItems
+            .SingleOrDefaultAsync(i => i.Id == itemId && i.ServiceOrderId == order.Id, ct);
+
+        if (item is null)
+        {
+            return ItemNotFound();
+        }
+
+        db.ServiceOrderItems.Remove(item);
+        order.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+
+        return NoContent();
+    }
 
     // -----------------------------------------------------------------------
 
@@ -215,9 +306,6 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         return db.ServiceOrders.AsNoTracking().Where(o => o.WorkshopId == workshopId);
     }
 
-    /// <summary>Projects the columns in SQL and assembles the strings in memory:
-    /// composing the vehicle description inside the query would push a CASE for
-    /// the optional year into Postgres for no gain over a page of 20 rows.</summary>
     private static async Task<IReadOnlyList<ServiceOrderSummary>> Summarize(
         IQueryable<ServiceOrder> query, CancellationToken ct)
     {
@@ -326,15 +414,64 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
             row.Order.ClosedAt);
     }
 
-    /// <summary>"Fiat Strada 2021" — the year is optional in the database.</summary>
     private static string DescribeVehicle(string brand, string model, int? modelYear) =>
         modelYear is null ? $"{brand} {model}" : $"{brand} {model} {modelYear}";
+
+    private Task<ServiceOrder?> Editable(Guid id, CancellationToken ct)
+    {
+        var workshopId = User.WorkshopId();
+        return db.ServiceOrders
+            .SingleOrDefaultAsync(o => o.Id == id && o.WorkshopId == workshopId, ct);
+    }
+
+    private async Task<bool> ValidatePart(ServiceOrderItemRequest request, CancellationToken ct)
+    {
+        if (request.ItemType == ItemType.Part)
+        {
+            if (request.PartId is null)
+            {
+                ModelState.AddModelError(
+                    nameof(request.PartId), "Informe a peça para um item do tipo PART.");
+            }
+            else if (!await db.Parts.AnyAsync(
+                p => p.Id == request.PartId && p.WorkshopId == User.WorkshopId(), ct))
+            {
+                ModelState.AddModelError(nameof(request.PartId), "Peça não encontrada.");
+            }
+        }
+        else if (request.PartId is not null)
+        {
+            ModelState.AddModelError(
+                nameof(request.PartId), "Um item do tipo SERVICE não aponta para peça.");
+        }
+
+        return ModelState.IsValid;
+    }
+
+    private static ServiceOrderItemResponse Describe(ServiceOrderItem item) =>
+        new(item.Id, item.ItemType, item.PartId, item.Description,
+            item.Quantity, item.UnitPrice, item.Quantity * item.UnitPrice, item.CreatedAt);
 
     private NotFoundObjectResult OrderNotFound() => NotFound(new ProblemDetails
     {
         Status = StatusCodes.Status404NotFound,
         Title = "Ordem de serviço não encontrada."
     });
+
+    private NotFoundObjectResult ItemNotFound() => NotFound(new ProblemDetails
+    {
+        Status = StatusCodes.Status404NotFound,
+        Title = "Item não encontrado nesta ordem de serviço."
+    });
+
+    private ConflictObjectResult ItemsAreClosed(ServiceOrderStatus status) => Conflict(
+        new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = $"Os itens não podem mais ser alterados: a ordem está em {status.ToPgName()}.",
+            Detail = "A baixa de estoque ocorre na conclusão, então a lista de itens "
+                + "é congelada a partir dela."
+        });
 
     private static string? Blank(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();

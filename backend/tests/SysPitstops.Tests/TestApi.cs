@@ -101,6 +101,26 @@ internal static class TestApi
         return vehicle;
     }
 
+    public static Part AddPart(
+        this AppDbContext db, string name = "Peça", decimal salePrice = 100m)
+    {
+        var part = new Part
+        {
+            Id = Guid.NewGuid(),
+            WorkshopId = WorkshopId,
+            Sku = $"SKU-{Random.Shared.Next(100000, 999999)}",
+            Name = name,
+            SalePrice = salePrice,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+
+        db.Parts.Add(part);
+        db.SaveChanges();
+
+        return part;
+    }
+
     public static ServiceOrder AddServiceOrder(
         this AppDbContext db,
         ServiceOrderStatus status = ServiceOrderStatus.Requested,
