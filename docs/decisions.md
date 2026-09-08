@@ -351,3 +351,15 @@ implementado, e `service_orders` não ganha coluna de prioridade.
 decisão anterior — é escopo que entrou pelo desenho. Acrescentar campo de
 domínio a três semanas do fim contraria a D-01, e o quadro é legível sem ele.
 Fica para a Fase 2.
+
+## D-34 — Sem tempo estimado de serviço no MVP
+**Data:** 2026-09-08
+**Decisão:** a tela do mecânico no protótipo mostra "Estimado: 45 min" e
+"Falta: 15 min". Nem a duração prevista nem a contagem regressiva são
+implementadas, e `service_orders` não ganha campo de tempo.
+**Alternativas:** acrescentar `estimated_minutes` à OS ou ao item, com a
+migration correspondente.
+**Motivo:** o mesmo da D-33. Duração não aparece no schema nem em nenhuma
+decisão anterior — entrou pelo desenho. Além do campo, exigiria decidir quem
+estima, quando, e o que fazer quando o prazo estoura, o que é escopo de produto,
+não de tela. A fila é utilizável sem isso. Fica para a Fase 2.

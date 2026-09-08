@@ -10,16 +10,22 @@ Projeto acadêmico (UFAPE, 2026.1), 3 pessoas, prazo curto. O MVP cobre o ciclo
 completo da Ordem de Serviço (OS): entrada do veículo → orçamento → execução →
 entrega.
 
-**Estado em 2026-09-07:** em implementação, Semana 2 do cronograma.
+**Estado em 2026-09-08:** Semanas 1 e 2 concluídas; começando a Semana 3.
 
 Prontos: schema e migrations, autenticação (JWT em cookie httpOnly), CRUD e tela
-de clientes e veículos, PWA com login e navegação por papel, CI no GitHub
-Actions, e o sistema **publicado e no ar** em https://syspitstops.onrender.com.
+de clientes e veículos, endpoint mínimo de usuários, **a Ordem de Serviço
+inteira** (abertura, itens com preço congelado, transições com histórico), o
+painel Kanban, a fila do mecânico, CI no GitHub Actions e o sistema **publicado
+e no ar** em https://syspitstops.onrender.com.
 
-Em aberto: a Ordem de Serviço. A máquina de estados já existe e está testada
-(`ServiceOrderWorkflow`), mas **nenhum endpoint a chama ainda** — falta a API da
-OS, o Kanban e a fila do mecânico. Depois vêm orçamento com link público, upload
-de fotos, estoque e dashboard.
+Em aberto, na ordem do cronograma: **orçamento com link público de aprovação**,
+**upload de fotos no laudo** e **estoque com baixa automática** (Semana 3);
+depois dashboard, carga de dados e ajustes de PWA (Semana 4).
+
+Dois pontos de extensão já marcados no código esperam a Semana 3: a transição
+para `READY` é onde a baixa de estoque da D-11 entra, e `HasApprovedQuote` no
+`ServiceOrdersController` passa a ser verdadeiro quando os orçamentos existirem
+— hoje só a dispensa do admin (D-13) leva a OS para execução.
 
 ## Stack
 
@@ -106,10 +112,15 @@ startup da aplicação (D-28). `Dockerfile` e `render.yaml` ficam na raiz.
 ## Design
 
 Telas no Figma (arquivo "Sys-PitStop", fileKey `jGZ6p2AhbpQAVcy7wV6K9o`).
-A tela de Clientes está implementada em `frontend/src/customers/`; as demais
-ainda são placeholder (`frontend/src/pages/Placeholder.tsx`). O menu e os papéis
-que enxergam cada item estão em `frontend/src/layout/navigation.ts`, com a flag
+Três telas estão implementadas: **Clientes** (`frontend/src/customers/`),
+**Kanban** e **Minha fila** (`frontend/src/service-orders/`). As demais ainda
+são placeholder (`frontend/src/pages/Placeholder.tsx`). O menu e os papéis que
+enxergam cada item estão em `frontend/src/layout/navigation.ts`, com a flag
 `ready` marcando o que já existe.
+
+O protótipo traz campos que o modelo não tem — prioridade e tempo estimado
+foram deixados de fora (D-33 e D-34). Ao implementar uma tela nova, confira se
+os campos desenhados existem no schema antes de assumir que sim.
 
 **Consulte o Figma ao implementar cada tela.** O arquivo tem bem mais frames do
 que os nomes de rota sugerem — além de Kanban, Dashboard e Mecânicos, há
