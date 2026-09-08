@@ -90,20 +90,70 @@ export function useMechanics() {
   return useQuery({
     queryKey: ['mechanics'],
     queryFn: async () => {
-      // The users endpoint does not exist yet; the filter reads the mechanics
-      // already assigned to orders instead of inventing a route.
-      const { data } = await api.GET('/api/service-orders', {
-        params: { query: { pageSize: boardPageSize } },
+      const { data, error } = await api.GET('/api/users', {
+        params: { query: { role: 'MECHANIC' } },
       })
 
-      const seen = new Map<string, string>()
-      for (const order of data?.items ?? []) {
-        if (order.mechanicId && order.mechanicName) {
-          seen.set(order.mechanicId, order.mechanicName)
-        }
+      if (error || !data) {
+        throw new Error(messageFrom(error, 'Não foi possível carregar os mecânicos.'))
       }
 
-      return [...seen].map(([id, name]) => ({ id, name }))
+      return data
     },
+  })
+}
+
+/** The orders assigned to whoever is signed in, already without the delivered
+ *  and cancelled ones — the queue is what is still to do. */
+export function useMyQueue() {
+  return useQuery({
+    queryKey: [...serviceOrdersKey, 'my-queue'],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/service-orders/my-queue')
+
+      if (error || !data) {
+        throw new Error(messageFrom(error, 'Não foi possível carregar sua fila.'))
+      }
+
+      return data
+    },
+  })
+}
+
+export function useOrder(id: string | undefined) {
+  return useQuery({
+    queryKey: [...serviceOrdersKey, 'one', id],
+    enabled: Boolean(id),
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/service-orders/{id}', {
+        params: { path: { id: id as string } },
+      })
+
+      if (error || !data) {
+        throw new Error(messageFrom(error, 'Não foi possível carregar a ordem de serviço.'))
+      }
+
+      return data
+    },
+  })
+}
+
+export function useSaveDiagnosis(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (diagnosis: string) => {
+      const { data, error } = await api.PUT('/api/service-orders/{id}/diagnosis', {
+        params: { path: { id } },
+        body: { diagnosis: diagnosis.trim() || null },
+      })
+
+      if (error || !data) {
+        throw new Error(messageFrom(error, 'Não foi possível salvar o diagnóstico.'))
+      }
+
+      return data
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: serviceOrdersKey }),
   })
 }
