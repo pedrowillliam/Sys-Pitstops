@@ -106,3 +106,17 @@ export function formatDay(iso: string | null | undefined): string | null {
 
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
+
+/** Espelha ServiceOrderWorkflow.AllowsItemChanges: entregue, cancelada e pronta
+ *  não recebem mais lançamento. O servidor recusa de qualquer jeito; isto só
+ *  evita oferecer um botão que vai dar erro. */
+export function allowsItemChanges(status: ServiceOrderStatus): boolean {
+  return status !== 'DELIVERED' && status !== 'CANCELED' && status !== 'READY'
+}
+
+/** Espelha a D-38: sem responsável a OS não entra em análise. O quadro deduz
+ *  isso sozinho só para explicar por que o botão não está lá — quem recusa de
+ *  fato é o servidor, que é onde a regra mora. */
+export function needsMechanicToAdvance(order: ServiceOrder): boolean {
+  return order.status === 'CONFIRMED' && !order.mechanicId
+}
