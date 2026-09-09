@@ -7,6 +7,8 @@ import { useSession } from './auth/session'
 import { CustomerFormPage } from './customers/CustomerFormPage'
 import { CustomersPage } from './customers/CustomersPage'
 import { KanbanPage } from './service-orders/KanbanPage'
+import { OpenOrderPage } from './service-orders/OpenOrderPage'
+import { OrderDetailPage } from './service-orders/OrderDetailPage'
 import { MyQueuePage } from './service-orders/MyQueuePage'
 import { AppShell } from './layout/AppShell'
 import { landingFor } from './layout/navigation'
@@ -44,6 +46,19 @@ const router = createBrowserRouter([
       {
         path: 'service-orders',
         element: <KanbanPage />,
+      },
+      // `new` antes de `:id` para o literal ganhar o casamento de rota.
+      {
+        path: 'service-orders/new',
+        element: (
+          <RequireRole allowed={desk}>
+            <OpenOrderPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: 'service-orders/:id',
+        element: <OrderDetailPage />,
       },
       {
         path: 'my-queue',

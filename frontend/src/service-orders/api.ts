@@ -157,3 +157,90 @@ export function useSaveDiagnosis(id: string) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: serviceOrdersKey }),
   })
 }
+
+export type ServiceOrderDetail = components['schemas']['ServiceOrderDetail']
+export type ServiceOrderItem = components['schemas']['ServiceOrderItemResponse']
+export type OpenOrderInput = components['schemas']['OpenServiceOrderRequest']
+export type UpdateOrderInput = components['schemas']['UpdateServiceOrderRequest']
+export type ItemInput = components['schemas']['ServiceOrderItemRequest']
+
+export function useOpenOrder() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (input: OpenOrderInput) => {
+      const { data, error } = await api.POST('/api/service-orders', { body: input })
+
+      if (error || !data) {
+        throw new Error(messageFrom(error, 'Não foi possível abrir a ordem de serviço.'))
+      }
+
+      return data
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: serviceOrdersKey }),
+  })
+}
+
+export function useUpdateOrder(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (input: UpdateOrderInput) => {
+      const { data, error } = await api.PUT('/api/service-orders/{id}', {
+        params: { path: { id } },
+        body: input,
+      })
+
+      if (error || !data) {
+        throw new Error(messageFrom(error, 'Não foi possível salvar a ordem de serviço.'))
+      }
+
+      return data
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: serviceOrdersKey }),
+  })
+}
+
+/** O preço vai congelado no lançamento (D-07): o que é enviado aqui é o que a
+ *  ordem mostra para sempre, mesmo que a peça mude de preço depois. */
+export function useSaveItem(orderId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ itemId, ...body }: ItemInput & { itemId?: string }) => {
+      const { data, error } = itemId
+        ? await api.PUT('/api/service-orders/{id}/items/{itemId}', {
+            params: { path: { id: orderId, itemId } },
+            body,
+          })
+        : await api.POST('/api/service-orders/{id}/items', {
+            params: { path: { id: orderId } },
+            body,
+          })
+
+      if (error || !data) {
+        throw new Error(messageFrom(error, 'Não foi possível salvar o item.'))
+      }
+
+      return data
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: serviceOrdersKey }),
+  })
+}
+
+export function useRemoveItem(orderId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (itemId: string) => {
+      const { error } = await api.DELETE('/api/service-orders/{id}/items/{itemId}', {
+        params: { path: { id: orderId, itemId } },
+      })
+
+      if (error) {
+        throw new Error(messageFrom(error, 'Não foi possível remover o item.'))
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: serviceOrdersKey }),
+  })
+}

@@ -1771,6 +1771,8 @@ export interface components {
         OpenServiceOrderRequest: {
             /** Format: uuid */
             vehicleId: string;
+            /** Format: uuid */
+            mechanicId?: string | null;
             /** Format: int32 */
             mileage?: number | null;
             reportedIssue?: string | null;
