@@ -1,10 +1,14 @@
-namespace SysPitstops.Api.Domain;
+﻿namespace SysPitstops.Api.Domain;
 
 public readonly record struct ServiceOrderTransition(
     ServiceOrderStatus From,
     ServiceOrderStatus To,
     UserRole Role,
+    /// <summary>Whether the acting user is the mechanic responsible for this
+    /// order — not the same as the order having one (see HasMechanic).</summary>
     bool IsAssignedMechanic = false,
+    /// <summary>Whether the order has a responsible mechanic at all.</summary>
+    bool HasMechanic = false,
     bool HasApprovedQuote = false,
     bool WaivesApproval = false);
 
@@ -72,7 +76,7 @@ public static class ServiceOrderWorkflow
         return to switch
         {
             ServiceOrderStatus.Confirmed => RequireDesk(transition.Role),
-            ServiceOrderStatus.InYard => RequireDesk(transition.Role),
+            ServiceOrderStatus.InYard => CheckAnalysis(transition),
             ServiceOrderStatus.AwaitingApproval => TransitionResult.Allow(),
             ServiceOrderStatus.InProgress => CheckStart(transition),
             ServiceOrderStatus.Ready => CheckFinish(transition),
@@ -92,6 +96,26 @@ public static class ServiceOrderWorkflow
         return transition.Role == UserRole.Admin
             ? TransitionResult.Allow()
             : TransitionResult.Refuse("Apenas o administrador pode cancelar uma ordem de serviço.");
+    }
+
+    /// <summary>Marcado e No Pátio são do balcão: o carro chega antes de alguém
+    /// assumir. Em Análise é onde o trabalho começa, então a partir daqui a
+    /// ordem tem que ter responsável — sem isso a fila do mecânico não recebe o
+    /// carro e ninguém é cobrado pelo laudo.</summary>
+    private static TransitionResult CheckAnalysis(ServiceOrderTransition transition)
+    {
+        var desk = RequireDesk(transition.Role);
+
+        if (!desk.Allowed)
+        {
+            return desk;
+        }
+
+        return transition.HasMechanic
+            ? TransitionResult.Allow()
+            : TransitionResult.Refuse(
+                "Defina o mecânico responsável antes de colocar a ordem de serviço "
+                + "em análise.");
     }
 
     private static TransitionResult CheckStart(ServiceOrderTransition transition)

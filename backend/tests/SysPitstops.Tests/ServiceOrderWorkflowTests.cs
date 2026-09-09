@@ -1,4 +1,4 @@
-using SysPitstops.Api.Domain;
+﻿using SysPitstops.Api.Domain;
 using Xunit;
 using static SysPitstops.Api.Domain.ServiceOrderStatus;
 using static SysPitstops.Api.Domain.UserRole;
@@ -13,9 +13,18 @@ public class ServiceOrderFlowTests
         UserRole role,
         bool assigned = false,
         bool approvedQuote = false,
-        bool waives = false) =>
-        ServiceOrderWorkflow.Check(
-            new ServiceOrderTransition(from, to, role, assigned, approvedQuote, waives));
+        bool waives = false,
+        // A ordem normalmente tem responsável; a falta dele é o assunto de
+        // testes próprios, não um acidente de fundo nos demais.
+        bool hasMechanic = true) =>
+        ServiceOrderWorkflow.Check(new ServiceOrderTransition(
+            from,
+            to,
+            role,
+            IsAssignedMechanic: assigned,
+            HasMechanic: hasMechanic,
+            HasApprovedQuote: approvedQuote,
+            WaivesApproval: waives));
 
     [Theory]
     [InlineData(Requested, Confirmed)]
@@ -77,9 +86,18 @@ public class ServiceOrderPermissionTests
         UserRole role,
         bool assigned = false,
         bool approvedQuote = false,
-        bool waives = false) =>
-        ServiceOrderWorkflow.Check(
-            new ServiceOrderTransition(from, to, role, assigned, approvedQuote, waives));
+        bool waives = false,
+        // A ordem normalmente tem responsável; a falta dele é o assunto de
+        // testes próprios, não um acidente de fundo nos demais.
+        bool hasMechanic = true) =>
+        ServiceOrderWorkflow.Check(new ServiceOrderTransition(
+            from,
+            to,
+            role,
+            IsAssignedMechanic: assigned,
+            HasMechanic: hasMechanic,
+            HasApprovedQuote: approvedQuote,
+            WaivesApproval: waives));
 
     [Theory]
     [InlineData(Attendant)]
@@ -107,6 +125,45 @@ public class ServiceOrderPermissionTests
     {
         Assert.True(Check(InYard, AwaitingApproval, role).Allowed);
     }
+}
+
+public class ServiceOrderAnalysisTests
+{
+    private static TransitionResult ToAnalysis(UserRole role, bool hasMechanic) =>
+        ServiceOrderWorkflow.Check(new ServiceOrderTransition(
+            Confirmed, InYard, role, HasMechanic: hasMechanic));
+
+    [Theory]
+    [InlineData(Admin)]
+    [InlineData(Attendant)]
+    public void AnalysisNeedsAResponsibleMechanic(UserRole role)
+    {
+        var result = ToAnalysis(role, hasMechanic: false);
+
+        Assert.False(result.Allowed);
+        Assert.Contains("mecânico responsável", result.Reason);
+    }
+
+    [Theory]
+    [InlineData(Admin)]
+    [InlineData(Attendant)]
+    public void WithAMechanicTheOrderGoesIntoAnalysis(UserRole role) =>
+        Assert.True(ToAnalysis(role, hasMechanic: true).Allowed);
+
+    /// <summary>O balcão recebe o carro antes de alguém assumir: até No Pátio a
+    /// ordem anda sem responsável.</summary>
+    [Fact]
+    public void TheStepsBeforeAnalysisDoNotNeedOne()
+    {
+        Assert.True(ServiceOrderWorkflow.Check(new ServiceOrderTransition(
+            Requested, Confirmed, Attendant, HasMechanic: false)).Allowed);
+    }
+
+    /// <summary>A regra é sobre a ordem ter responsável, não sobre quem clica:
+    /// o mecânico continua sem poder mover a ordem para análise.</summary>
+    [Fact]
+    public void ItDoesNotLetTheMechanicMoveTheOrder() =>
+        Assert.False(ToAnalysis(Mechanic, hasMechanic: true).Allowed);
 }
 
 public class ServiceOrderApprovalTests
