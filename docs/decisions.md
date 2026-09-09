@@ -331,6 +331,7 @@ serviço porque, por D-24, os testes não dependem de banco.
 
 ## D-32 — A coluna "Aprovado" do Kanban é derivada, não um status
 **Data:** 2026-09-07
+*Revisada por D-35*
 **Decisão:** o quadro do protótipo tem uma coluna "Aprovado" entre "Aprovação do
 Orçamento" e "Em Execução". Ela não vira status novo: mostra as OS em
 `AWAITING_APPROVAL` que já têm orçamento aprovado. O `ServiceOrderSummary` ganha
@@ -363,3 +364,18 @@ migration correspondente.
 decisão anterior — entrou pelo desenho. Além do campo, exigiria decidir quem
 estima, quando, e o que fazer quando o prazo estoura, o que é escopo de produto,
 não de tela. A fila é utilizável sem isso. Fica para a Fase 2.
+
+## D-35 — Orçamento aprovado é etiqueta no cartão, não coluna
+**Data:** 2026-09-08
+*Revisa D-32*
+**Decisão:** a coluna "Aprovado" sai do Kanban. No lugar, o cartão ganha uma
+etiqueta "Orçamento aprovado", visível em qualquer coluna onde a OS estiver.
+**Alternativas:** manter a coluna; ou fazê-la aceitar qualquer status anterior à
+execução.
+**Motivo:** a D-32 supôs um repouso entre aprovar e executar que a D-13 não
+permite — aprovando com a OS em `AWAITING_APPROVAL`, ela vai direto para
+`IN_PROGRESS` e a coluna nunca recebe cartão. E o primeiro teste real mostrou o
+caso oposto: orçamento aprovado com a OS ainda em análise **não move nada**, e a
+aprovação ficava invisível no quadro. A etiqueta informa nos dois casos. Fazer a
+coluna aceitar outros status duplicaria o cartão, porque cada coluna filtra de
+forma independente.
