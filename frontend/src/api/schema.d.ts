@@ -574,6 +574,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/quotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["QuoteStatus"];
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["QuoteListItemPagedResult"];
+                        "application/json": components["schemas"]["QuoteListItemPagedResult"];
+                        "text/json": components["schemas"]["QuoteListItemPagedResult"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/service-orders/{orderId}/quotes": {
         parameters: {
             query?: never;
@@ -1771,6 +1812,39 @@ export interface components {
             /** Format: double */
             unitPrice: number;
             /** Format: double */
+            total: number;
+        };
+        QuoteListItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            serviceOrderId: string;
+            /** Format: int32 */
+            serviceOrderNumber: number;
+            serviceOrderStatus: components["schemas"]["ServiceOrderStatus"];
+            status: components["schemas"]["QuoteStatus"];
+            /** Format: double */
+            totalAmount: number;
+            customerName: string;
+            customerPhone: string;
+            vehiclePlate: string;
+            vehicleDescription: string;
+            publicToken: string;
+            sentByName: string;
+            /** Format: date-time */
+            sentAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            respondedAt?: string | null;
+        };
+        QuoteListItemPagedResult: {
+            items: components["schemas"]["QuoteListItem"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
             total: number;
         };
         QuoteResponse: {
