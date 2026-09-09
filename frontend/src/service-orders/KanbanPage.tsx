@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { QuotePanel } from '../quotes/QuotePanel'
 import {
   useAllowedTransitions,
   useBoard,
@@ -16,7 +17,15 @@ import {
   yardSummary,
 } from './board'
 
-function OrderCard({ order, onMove }: { order: ServiceOrder; onMove: (o: ServiceOrder) => void }) {
+function OrderCard({
+  order,
+  onMove,
+  onQuote,
+}: {
+  order: ServiceOrder
+  onMove: (o: ServiceOrder) => void
+  onQuote: (o: ServiceOrder) => void
+}) {
   const scheduled = formatDay(order.scheduledAt)
 
   return (
@@ -45,13 +54,24 @@ function OrderCard({ order, onMove }: { order: ServiceOrder; onMove: (o: Service
 
       <p className="mt-2 text-sm font-semibold">{formatMoney(order.total)}</p>
 
-      <button
-        type="button"
-        onClick={() => onMove(order)}
-        className="mt-3 w-full rounded border border-line px-2 py-1 text-xs font-medium hover:bg-surface"
-      >
-        Mover
-      </button>
+      <div className="mt-3 flex gap-2">
+        <button
+          type="button"
+          onClick={() => onMove(order)}
+          className="flex-1 rounded border border-line px-2 py-1 text-xs font-medium hover:bg-surface"
+        >
+          Mover
+        </button>
+        {/* D-15: o orçamento nasce da OS, e é daqui que o atendente tira o
+            link do WhatsApp. */}
+        <button
+          type="button"
+          onClick={() => onQuote(order)}
+          className="flex-1 rounded border border-line px-2 py-1 text-xs font-medium hover:bg-surface"
+        >
+          Orçamento
+        </button>
+      </div>
     </li>
   )
 }
@@ -160,6 +180,7 @@ function MovePanel({ order, onClose }: { order: ServiceOrder; onClose: () => voi
 export function KanbanPage() {
   const [mechanicId, setMechanicId] = useState<string>('')
   const [moving, setMoving] = useState<ServiceOrder | null>(null)
+  const [quoting, setQuoting] = useState<ServiceOrder | null>(null)
 
   const { data, isPending, isError, error } = useBoard(mechanicId || undefined)
   const { data: mechanics } = useMechanics()
@@ -233,7 +254,12 @@ export function KanbanPage() {
 
                   <ul className="mt-3 space-y-3">
                     {cards.map((order) => (
-                      <OrderCard key={order.id} order={order} onMove={setMoving} />
+                      <OrderCard
+                        key={order.id}
+                        order={order}
+                        onMove={setMoving}
+                        onQuote={setQuoting}
+                      />
                     ))}
                   </ul>
 
@@ -248,6 +274,7 @@ export function KanbanPage() {
       )}
 
       {moving && <MovePanel order={moving} onClose={() => setMoving(null)} />}
+      {quoting && <QuotePanel orderId={quoting.id} onClose={() => setQuoting(null)} />}
     </section>
   )
 }

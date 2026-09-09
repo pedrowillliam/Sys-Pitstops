@@ -1,6 +1,7 @@
 import { Navigate, createBrowserRouter, RouterProvider } from 'react-router'
 import { LoginPage } from './auth/LoginPage'
 import { PublicQuotePage } from './quotes/PublicQuotePage'
+import { QuotesPage } from './quotes/QuotesPage'
 import { RequireAuth, RequireRole } from './auth/RequireAuth'
 import { useSession } from './auth/session'
 import { CustomerFormPage } from './customers/CustomerFormPage'
@@ -100,7 +101,7 @@ const router = createBrowserRouter([
         path: 'quotes',
         element: (
           <RequireRole allowed={desk}>
-            <Placeholder title="Orçamento" waitingFor="a API de orçamentos" />
+            <QuotesPage />
           </RequireRole>
         ),
       },

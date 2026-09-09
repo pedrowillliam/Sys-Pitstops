@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -192,7 +192,7 @@ public class CustomersController(AppDbContext db) : ControllerBase
 
     private bool TryNormalize(CustomerRequest request, out string phone, out string? document)
     {
-        phone = PhoneNumber.Normalize(request.Phone);
+        phone = PhoneNumber.StripCountryCode(PhoneNumber.Normalize(request.Phone));
         document = null;
 
         if (!PhoneNumber.IsValid(phone))

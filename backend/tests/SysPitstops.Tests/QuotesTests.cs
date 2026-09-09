@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SysPitstops.Api.Contracts;
 using SysPitstops.Api.Controllers;
 using SysPitstops.Api.Data;
@@ -240,3 +241,125 @@ public class QuoteExpiryTests
             ItemsSnapshot = "[]"
         });
 }
+
+public class QuoteListTests
+{
+    [Fact]
+    public async Task TheListNamesTheOrderTheCustomerTheVehicleAndWhoSent()
+    {
+        var db = TestApi.NewDatabase();
+        var sender = db.AddUser("Ana Atendente", UserRole.Attendant);
+        var order = Ordered(db, number: 42);
+
+        await new QuotesController(db).AsUser(sender).Send(order.Id, default);
+
+        var row = Assert.Single(TestApi.Body(
+            await new QuotesController(db).AsUser(sender).ListAll(null, null, null, default)).Items);
+
+        Assert.Equal(42, row.ServiceOrderNumber);
+        Assert.Equal("Ana Atendente", row.SentByName);
+        Assert.Equal("Cliente", row.CustomerName);
+        Assert.Equal("Fiat Uno", row.VehicleDescription);
+        Assert.Equal(ServiceOrderStatus.AwaitingApproval, row.ServiceOrderStatus);
+        Assert.NotEmpty(row.CustomerPhone);
+        Assert.NotEmpty(row.PublicToken);
+    }
+
+    /// <summary>The per-order list reads the same navigations; before the fix it
+    /// answered order 0 sent by nobody.</summary>
+    [Fact]
+    public async Task ThePerOrderListAlsoNamesWhoSentTheQuote()
+    {
+        var db = TestApi.NewDatabase();
+        var sender = db.AddUser("Bia Atendente", UserRole.Attendant);
+        var order = Ordered(db, number: 7);
+        var quotes = new QuotesController(db).AsUser(sender);
+
+        var sent = TestApi.Body(await quotes.Send(order.Id, default));
+        var listed = Assert.Single(TestApi.Body(await quotes.List(order.Id, default)));
+
+        Assert.Equal("Bia Atendente", sent.SentByName);
+        Assert.Equal(7, sent.ServiceOrderNumber);
+        Assert.Equal("Bia Atendente", listed.SentByName);
+        Assert.Equal(7, listed.ServiceOrderNumber);
+    }
+
+    [Fact]
+    public async Task AQuotePastItsDateIsListedAsExpired()
+    {
+        var db = TestApi.NewDatabase();
+        await Expire(db);
+
+        var row = Assert.Single(TestApi.Body(await Quotes(db).ListAll(null, null, null, default)).Items);
+
+        Assert.Equal(QuoteStatus.Expired, row.Status);
+    }
+
+    [Fact]
+    public async Task FilteringByAwaitingAnAnswerSkipsTheOnesAlreadyPastTheDate()
+    {
+        var db = TestApi.NewDatabase();
+        await Expire(db);
+        await Quotes(db).Send(Ordered(db).Id, default);
+
+        var awaiting = TestApi.Body(
+            await Quotes(db).ListAll(QuoteStatus.Sent, null, null, default));
+
+        Assert.Equal(1, awaiting.Total);
+        Assert.True(Assert.Single(awaiting.Items).ExpiresAt > DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>Expiry is decided on read (D-14), so the expired ones are still
+    /// SENT in the table: the filter has to find them anyway.</summary>
+    [Fact]
+    public async Task FilteringByExpiredFindsTheOnesStillStoredAsSent()
+    {
+        var db = TestApi.NewDatabase();
+        await Expire(db);
+        await Quotes(db).Send(Ordered(db).Id, default);
+
+        var expired = TestApi.Body(
+            await Quotes(db).ListAll(QuoteStatus.Expired, null, null, default));
+
+        Assert.Equal(1, expired.Total);
+        Assert.Equal(QuoteStatus.Expired, Assert.Single(expired.Items).Status);
+    }
+
+    [Fact]
+    public async Task TheListPagesAndCountsTheWholeWorkshop()
+    {
+        var db = TestApi.NewDatabase();
+
+        for (var i = 0; i < 3; i++)
+        {
+            await Quotes(db).Send(Ordered(db).Id, default);
+        }
+
+        var page = TestApi.Body(await Quotes(db).ListAll(null, 2, 2, default));
+
+        Assert.Equal(3, page.Total);
+        Assert.Equal(2, page.Page);
+        Assert.Single(page.Items);
+    }
+
+    private static ServiceOrder Ordered(AppDbContext db, int number = 1)
+    {
+        var order = db.AddServiceOrder(status: ServiceOrderStatus.AwaitingApproval);
+        order.Number = number;
+        db.SaveChanges();
+        db.AddItem(order, "Serviço", 1m, 100m);
+        return order;
+    }
+
+    private static async Task Expire(AppDbContext db)
+    {
+        var sent = TestApi.Body(await Quotes(db).Send(Ordered(db).Id, default));
+        var stored = await db.Quotes.SingleAsync(q => q.Id == sent.Id);
+        stored.ExpiresAt = DateTimeOffset.UtcNow.AddDays(-1);
+        await db.SaveChangesAsync();
+    }
+
+    private static QuotesController Quotes(AppDbContext db) =>
+        new QuotesController(db).AsUser(db.AddUser());
+}
+

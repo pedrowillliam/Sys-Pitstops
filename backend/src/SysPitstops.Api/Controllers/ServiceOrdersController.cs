@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SysPitstops.Api.Auth;
@@ -536,8 +536,8 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
                 // D-09: the total is computed, never stored.
                 ItemsTotal = o.Items.Sum(i => i.Quantity * i.UnitPrice),
                 o.DiscountAmount,
-                // D-32: the board splits "awaiting approval" from "approved"
-                // without a status of its own.
+                // D-35: the answer travels as a badge on the card, because
+                // approving does not always move the order.
                 HasApprovedQuote = o.Quotes.Any(q => q.Status == QuoteStatus.Approved),
                 o.OpenedAt,
                 o.ScheduledAt,
@@ -551,7 +551,7 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
             r.Status,
             r.VehicleId,
             r.Plate,
-            DescribeVehicle(r.Brand, r.Model, r.ModelYear),
+            VehicleLabel.Describe(r.Brand, r.Model, r.ModelYear),
             r.CustomerId,
             r.CustomerName,
             r.MechanicId,
@@ -607,7 +607,7 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
             row.Order.Status,
             row.Order.VehicleId,
             row.Plate,
-            DescribeVehicle(row.Brand, row.Model, row.ModelYear),
+            VehicleLabel.Describe(row.Brand, row.Model, row.ModelYear),
             row.Order.CustomerId,
             row.CustomerName,
             row.CustomerPhone,
@@ -627,8 +627,6 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
             row.Order.ClosedAt);
     }
 
-    private static string DescribeVehicle(string brand, string model, int? modelYear) =>
-        modelYear is null ? $"{brand} {model}" : $"{brand} {model} {modelYear}";
 
     private Task<ServiceOrder?> Editable(Guid id, CancellationToken ct)
     {

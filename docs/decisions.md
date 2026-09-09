@@ -379,3 +379,17 @@ caso oposto: orçamento aprovado com a OS ainda em análise **não move nada**, 
 aprovação ficava invisível no quadro. A etiqueta informa nos dois casos. Fazer a
 coluna aceitar outros status duplicaria o cartão, porque cada coluna filtra de
 forma independente.
+
+## D-36 — A tela de orçamento é a lista da oficina, e não edita o que já saiu
+**Data:** 2026-09-08
+**Decisão:** `/quotes` lista os orçamentos da oficina inteira, com filtro por
+situação. O orçamento é **gerado a partir da OS**, por um painel no cartão do
+Kanban. O botão "Editar" do protótipo vira "Enviar no WhatsApp" e "Copiar link";
+o filtro "Todas Prioridades" vira filtro por situação.
+**Alternativas:** manter o "Editar" do desenho; ou pendurar a tela numa OS só.
+**Motivo:** pela D-10 o orçamento é uma fotografia dos itens no momento do
+envio — editar reescreveria o que o cliente já viu. Para corrigir, gera-se
+outro: a API expira o que estava de pé e cria um novo registro. Prioridade não
+existe no modelo (D-33), e situação é o que o atendente realmente filtra, já que
+o trabalho da tela é cobrar quem não respondeu.
+
