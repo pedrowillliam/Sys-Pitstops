@@ -75,6 +75,10 @@ npm run dev
 `backend/` contém a solution com dois projetos, por isso o `--project`: sem ele
 o `dotnet run` não sabe qual executar.
 
+Se a porta 5432 já estiver ocupada — uma instalação nativa do PostgreSQL na
+máquina, por exemplo — mude `POSTGRES_PORT` no `.env` e ajuste a porta na
+`ConnectionStrings__Default` junto. O `docker-compose.yml` já lê a variável.
+
 Em desenvolvimento o front roda no Vite e faz proxy de `/api` para o back —
 front e API na mesma origem, que é o que o cookie de sessão exige (D-20).
 

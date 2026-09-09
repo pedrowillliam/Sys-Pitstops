@@ -382,6 +382,7 @@ forma independente.
 
 ## D-36 — A tela de orçamento é a lista da oficina, e não edita o que já saiu
 **Data:** 2026-09-08
+*Revisada por D-39*
 **Decisão:** `/quotes` lista os orçamentos da oficina inteira, com filtro por
 situação. O orçamento é **gerado a partir da OS**, por um painel no cartão do
 Kanban. O botão "Editar" do protótipo vira "Enviar no WhatsApp" e "Copiar link";

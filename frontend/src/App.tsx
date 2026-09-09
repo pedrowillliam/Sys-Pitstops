@@ -72,7 +72,7 @@ const router = createBrowserRouter([
         path: 'mechanics',
         element: (
           <RequireRole allowed={desk}>
-            <Placeholder title="Mecânicos" waitingFor="a API de usuários" />
+            <Placeholder title="Mecânicos" waitingFor="a tela de cadastro e desempenho" />
           </RequireRole>
         ),
       },
@@ -108,7 +108,7 @@ const router = createBrowserRouter([
         path: 'vehicles',
         element: (
           <RequireRole allowed={desk}>
-            <Placeholder title="Veículos" waitingFor="o merge do PR de clientes e veículos" />
+            <Placeholder title="Veículos" waitingFor="uma tela própria, que o protótipo não prevê" />
           </RequireRole>
         ),
       },

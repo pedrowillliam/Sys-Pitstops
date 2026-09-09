@@ -10,15 +10,18 @@ Projeto acadêmico (UFAPE, 2026.1), 3 pessoas, prazo curto. O MVP cobre o ciclo
 completo da Ordem de Serviço (OS): entrada do veículo → orçamento → execução →
 entrega.
 
-**Estado em 2026-09-08:** Semanas 1 e 2 concluídas; Semana 3 em andamento.
+**Estado em 2026-09-09:** Semanas 1 e 2 concluídas; Semana 3 em andamento.
 
-Prontos: schema e migrations, autenticação (JWT em cookie httpOnly), CRUD e tela
-de clientes e veículos, endpoint mínimo de usuários, **a Ordem de Serviço
-inteira** (abertura, itens com preço congelado, transições com histórico), o
-painel Kanban, a fila do mecânico, **a OS pelo navegador** (abertura, detalhe,
-lançamento de itens), **o orçamento de ponta a ponta** (geração a partir da OS,
-link público de aprovação e tela de acompanhamento), CI no GitHub Actions e o
-sistema **publicado e no ar** em https://syspitstops.onrender.com.
+Prontos: schema e migrations, autenticação (JWT em cookie httpOnly), CRUD de
+clientes e veículos com tela de clientes, endpoint mínimo de usuários, **a Ordem
+de Serviço de ponta a ponta** — abertura, detalhe, itens com preço congelado,
+transições com histórico, painel Kanban e fila do mecânico —, **o orçamento
+completo** (geração a partir da OS, link público de aprovação e tela de
+acompanhamento), CI no GitHub Actions e o sistema **publicado e no ar** em
+https://syspitstops.onrender.com.
+
+Veículos têm API e entram pelo cadastro do cliente, mas não têm tela própria: o
+protótipo não prevê uma.
 
 Em aberto, na ordem do cronograma: **upload de fotos no laudo** e **estoque com
 baixa automática** (Semana 3); depois dashboard, carga de dados e ajustes de PWA
