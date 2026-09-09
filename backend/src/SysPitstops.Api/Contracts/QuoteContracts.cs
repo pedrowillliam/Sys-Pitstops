@@ -23,6 +23,7 @@ public record PublicQuoteResponse(
     string CustomerName,
     string VehicleDescription,
     string VehiclePlate,
+    string? MechanicName,
     QuoteStatus Status,
     decimal TotalAmount,
     IReadOnlyList<QuoteItemSnapshot> Items,

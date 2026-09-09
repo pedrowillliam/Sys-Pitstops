@@ -124,6 +124,7 @@ public class PublicQuotesController(AppDbContext db) : ControllerBase
             .Include(q => q.ServiceOrder).ThenInclude(o => o.Vehicle)
             .Include(q => q.ServiceOrder).ThenInclude(o => o.Customer)
             .Include(q => q.ServiceOrder).ThenInclude(o => o.Workshop)
+            .Include(q => q.ServiceOrder).ThenInclude(o => o.Mechanic)
             .SingleOrDefaultAsync(q => q.PublicToken == token, ct);
 
     private static PublicQuoteResponse Describe(Quote quote)
@@ -140,6 +141,7 @@ public class PublicQuotesController(AppDbContext db) : ControllerBase
             order.Customer.Name,
             description,
             vehicle.Plate,
+            order.Mechanic?.Name,
             quote.Status,
             quote.TotalAmount,
             QuoteLifecycle.ReadItems(quote),

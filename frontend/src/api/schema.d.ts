@@ -1753,6 +1753,7 @@ export interface components {
             customerName: string;
             vehicleDescription: string;
             vehiclePlate: string;
+            mechanicName?: string | null;
             status: components["schemas"]["QuoteStatus"];
             /** Format: double */
             totalAmount: number;
