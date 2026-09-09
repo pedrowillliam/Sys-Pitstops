@@ -1,5 +1,6 @@
 import { Navigate, createBrowserRouter, RouterProvider } from 'react-router'
 import { LoginPage } from './auth/LoginPage'
+import { PublicQuotePage } from './quotes/PublicQuotePage'
 import { RequireAuth, RequireRole } from './auth/RequireAuth'
 import { useSession } from './auth/session'
 import { CustomerFormPage } from './customers/CustomerFormPage'
@@ -19,6 +20,9 @@ const desk = ['ADMIN', 'ATTENDANT']
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  // Fora do shell: quem abre este link não tem login (D-15, D-21). O caminho
+  // é curto porque vai numa mensagem de WhatsApp.
+  { path: '/q/:token', element: <PublicQuotePage /> },
   {
     path: '/',
     element: (
