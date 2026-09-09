@@ -1,3 +1,4 @@
+import { PageHeader } from '../layout/PageHeader'
 import { useState } from 'react'
 import { pageSize, useQuotes, type Quote, type QuoteStatus } from './api'
 import { money } from './publicApi'
@@ -105,9 +106,7 @@ export function QuotesPage() {
 
   return (
     <section>
-      <header className="rounded bg-brand px-4 py-3 text-sm font-medium text-white">
-        Orçamentos
-      </header>
+      <PageHeader icon="currency" title="Orçamentos" />
 
       {/* O link carrega a origem de onde esta página foi aberta. Rodando local
           ele não abre na casa de ninguém, e é fácil esquecer disso numa

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
+import { PlusCircleIcon } from '../layout/icons'
 import {
   useAllowedTransitions,
   useBoard,
@@ -186,7 +187,12 @@ export function KanbanPage() {
   const [mechanicId, setMechanicId] = useState<string>('')
   const [moving, setMoving] = useState<ServiceOrder | null>(null)
 
-  const { data, isPending, isError, error } = useBoard(mechanicId || undefined)
+  // A busca do topo chega por aqui: o AppShell manda para /service-orders com
+  // ?search=. Fica na URL para o resultado poder ser recarregado e compartilhado.
+  const [params, setParams] = useSearchParams()
+  const search = params.get('search') ?? ''
+
+  const { data, isPending, isError, error } = useBoard(mechanicId || undefined, search)
   const { data: mechanics } = useMechanics()
 
   const orders = (data ?? []).filter(onTheBoard)
@@ -194,11 +200,26 @@ export function KanbanPage() {
 
   return (
     <section>
-      <header className="rounded bg-brand px-4 py-3 text-sm font-medium text-white">
-        Status do Pátio
-      </header>
+      {/* O desenho do Kanban abre pelo título e por uma barra escura de
+          filtros — a faixa de seção do PageHeader é das outras telas. */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Quadro de Ordens de Serviço</h1>
+          <p className="text-sm text-ink-soft">
+            Monitore o fluxo de trabalho de reparos da oficina.
+          </p>
+        </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Link
+          to="/service-orders/new"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand/90"
+        >
+          <PlusCircleIcon className="h-5 w-5" />
+          Nova Ordem de Serviço
+        </Link>
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {tiles.map((tile) => (
           <div key={tile.label} className="rounded-lg border border-line bg-panel p-4">
             <p className="text-sm text-ink-soft">{tile.label}</p>
@@ -207,28 +228,13 @@ export function KanbanPage() {
         ))}
       </div>
 
-      <div className="mt-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Quadro de Ordens de Serviço</h1>
-          <p className="text-sm text-ink-soft">
-            Monitore o fluxo de trabalho de reparos da oficina.
-          </p>
-        </div>
-
-        <div className="flex items-end gap-3">
-        <Link
-          to="/service-orders/new"
-          className="rounded bg-brand px-4 py-2 text-sm font-medium text-white"
-        >
-          Nova OS
-        </Link>
-
+      <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-brand-deep px-4 py-3">
         <label className="text-sm">
           <span className="sr-only">Filtrar por mecânico</span>
           <select
             value={mechanicId}
             onChange={(event) => setMechanicId(event.target.value)}
-            className="rounded border border-line bg-panel px-3 py-2 text-sm"
+            className="rounded-lg bg-panel px-3 py-2 text-sm"
           >
             <option value="">Todos os mecânicos</option>
             {mechanics?.map((mechanic) => (
@@ -238,8 +244,25 @@ export function KanbanPage() {
             ))}
           </select>
         </label>
-        </div>
+
+        {/* "Todas Prioridades" e o filtro de data do protótipo não entram:
+            prioridade não existe no modelo (D-33). */}
       </div>
+
+      {search && (
+        <p className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-line bg-panel px-4 py-2.5 text-sm">
+          <span className="text-ink-soft">Filtrando por</span>
+          <strong>“{search}”</strong>
+          <span className="text-ink-soft">— {orders.length} no quadro</span>
+          <button
+            type="button"
+            onClick={() => setParams({}, { replace: true })}
+            className="ml-auto text-ink-soft underline underline-offset-2"
+          >
+            Limpar busca
+          </button>
+        </p>
+      )}
 
       {isError && (
         <p role="alert" className="mt-4 rounded border border-line bg-panel p-4 text-sm">
