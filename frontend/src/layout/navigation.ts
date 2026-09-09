@@ -19,7 +19,7 @@ export const navigation: NavItem[] = [
   { to: '/my-queue', label: 'Minha fila', roles: ['MECHANIC'], ready: true },
   { to: '/mechanics', label: 'Mecânicos', roles: ['ADMIN', 'ATTENDANT'], ready: false },
   { to: '/customers', label: 'Clientes', roles: ['ADMIN', 'ATTENDANT'], ready: true },
-  { to: '/quotes', label: 'Orçamento', roles: ['ADMIN', 'ATTENDANT'], ready: false },
+  { to: '/quotes', label: 'Orçamento', roles: ['ADMIN', 'ATTENDANT'], ready: true },
   { to: '/inventory', label: 'Estoque', roles: ['ADMIN', 'ATTENDANT'], ready: false },
   { to: '/settings', label: 'Configurações', roles: ['ADMIN'], ready: false },
 ]
