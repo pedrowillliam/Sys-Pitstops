@@ -473,3 +473,20 @@ oferecer só "Editar"; desenhar o sino sem função.
 logo no primeiro cadastro, e sem lançamento nenhuma peça entraria no estoque.
 O sino sai pela mesma linha da D-33 e da D-37: não há tabela de notificação nem
 evento que o alimente, e um ícone que não faz nada ensina o usuário a ignorá-lo.
+
+## D-43 — O login corta "esqueci a senha", "lembre de mim" e o (i)
+**Data:** 2026-09-09
+**Decisão:** a tela de login reproduz o Figma no cartão, nos rótulos, no botão
+e na faixa do rodapé, mas **sem** os links "Esqueceu o e-mail ?" e "Esqueceu a
+senha ?", sem o "Lembre de mim." e sem o ícone (i) de "Quem somos". A dica
+"Mínimo 8 caracteres." fica.
+**Alternativas:** desenhar os três e deixá-los inertes; ou implementar
+recuperação de senha e sessão longa agora.
+**Motivo:** não existe rota de recuperação de senha na API, e criá-la exige
+envio de e-mail, token de uso único e expiração — escopo de produto que a D-01
+não lista. "Lembre de mim." bate de frente com a D-19: o token vale 8 horas
+fixas e não há refresh, então estender a sessão ampliaria o risco já aceito lá
+de um token roubado durar um turno inteiro. O (i) não tem destino. Mesmo
+critério do sino da D-42 — controle inerte ensina o usuário a ignorar a tela.
+"Mínimo 8 caracteres." permanece porque a regra existe: `UserContracts` exige
+`MinimumLength = 8`.
