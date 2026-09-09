@@ -1,4 +1,4 @@
-using SysPitstops.Api.Domain;
+﻿using SysPitstops.Api.Domain;
 using Xunit;
 
 namespace SysPitstops.Tests;
@@ -53,6 +53,39 @@ public class PhoneNumberTests
     [InlineData("01999990000")]
     public void OtherLengthsAreRejected(string phone) =>
         Assert.False(PhoneNumber.IsValid(phone));
+
+    [Theory]
+    [InlineData("81999990000")]
+    [InlineData("11987654321")]
+    public void ElevenDigitsWithTheNinthDigitIsAMobile(string phone) =>
+        Assert.True(PhoneNumber.IsMobile(phone));
+
+    /// <summary>A landline stays a valid customer phone; it just cannot receive
+    /// the quote by WhatsApp.</summary>
+    [Theory]
+    [InlineData("8133334444")]
+    [InlineData("81833334444")]
+    [InlineData("")]
+    public void ALandlineIsValidButIsNotAMobile(string phone)
+    {
+        Assert.False(PhoneNumber.IsMobile(phone));
+        Assert.Equal(phone.Length is 10 or 11, PhoneNumber.IsValid(phone));
+    }
+
+    [Theory]
+    [InlineData("5581999990000", "81999990000")]
+    [InlineData("558133334444", "8133334444")]
+    public void APastedCountryCodeIsDropped(string input, string expected) =>
+        Assert.Equal(expected, PhoneNumber.StripCountryCode(input));
+
+    /// <summary>The number itself may start with 55: only a length that says
+    /// the country code is really there makes it go.</summary>
+    [Theory]
+    [InlineData("5599990000")]
+    [InlineData("55999990000")]
+    [InlineData("55")]
+    public void AShorterNumberStartingWith55IsKept(string input) =>
+        Assert.Equal(input, PhoneNumber.StripCountryCode(input));
 }
 
 public class TaxDocumentTests

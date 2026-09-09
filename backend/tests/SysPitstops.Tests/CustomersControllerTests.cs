@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SysPitstops.Api.Contracts;
 using SysPitstops.Api.Controllers;
@@ -36,6 +36,19 @@ public class CustomersControllerTests
         Assert.True(created.IsActive);
         Assert.Empty(created.Vehicles);
         Assert.Single(db.Customers);
+    }
+
+    /// <summary>Copying the number from the phone book brings the +55 along.
+    /// It is dropped on save so the stored digits stay comparable.</summary>
+    [Fact]
+    public async Task CreateAcceptsANumberPastedWithTheCountryCode()
+    {
+        var (_, controller) = Build();
+
+        var created = TestApi.Body(
+            await controller.Create(Valid() with { Phone = "+55 (81) 99999-0000" }, default));
+
+        Assert.Equal("81999990000", created.Phone);
     }
 
     [Fact]
