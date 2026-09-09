@@ -35,19 +35,15 @@ export const columns: BoardColumn[] = [
     accent: 'bg-blue-500',
     holds: (o) => o.status === 'IN_YARD',
   },
+  // D-35: there is no "Aprovado" column. Approving takes the order straight to
+  // IN_PROGRESS when it is awaiting approval, and when it is not, nothing moves
+  // — so the fact travels on the card as a badge instead of a column that would
+  // almost never hold anything.
   {
     key: 'AWAITING_APPROVAL',
     label: 'Aprovação do Orçamento',
     accent: 'bg-orange-400',
-    holds: (o) => o.status === 'AWAITING_APPROVAL' && !o.hasApprovedQuote,
-  },
-  // D-32: not a status of its own — an order still awaiting approval whose quote
-  // has already come back approved. Always empty until quotes exist (week 3).
-  {
-    key: 'APPROVED',
-    label: 'Aprovado',
-    accent: 'bg-emerald-400',
-    holds: (o) => o.status === 'AWAITING_APPROVAL' && o.hasApprovedQuote,
+    holds: (o) => o.status === 'AWAITING_APPROVAL',
   },
   {
     key: 'IN_PROGRESS',

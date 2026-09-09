@@ -30,6 +30,14 @@ function OrderCard({ order, onMove }: { order: ServiceOrder; onMove: (o: Service
       <p className="mt-2 text-sm font-semibold">{order.vehicleDescription}</p>
       <p className="text-xs text-ink-soft">Cliente: {order.customerName}</p>
 
+      {/* D-35: onde quer que a OS esteja, o balcão precisa ver que o cliente
+          já respondeu — a aprovação nem sempre move a ordem sozinha. */}
+      {order.hasApprovedQuote && (
+        <p className="mt-2 inline-block rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+          Orçamento aprovado
+        </p>
+      )}
+
       <div className="mt-2 flex items-center justify-between text-xs text-ink-soft">
         <span className="truncate">{order.mechanicName ?? 'Sem mecânico'}</span>
         {scheduled && <span>{scheduled}</span>}
