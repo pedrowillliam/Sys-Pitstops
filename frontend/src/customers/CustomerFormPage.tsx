@@ -1,14 +1,38 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useCustomer, useSaveCustomer, type CustomerInput } from './api'
+import { formatPhone, onlyDigits, toPhoneDigits } from './phone'
 
 const empty: CustomerInput = { name: '', phone: '', document: '', email: '', notes: '' }
 
-type Field = { label: string; name: keyof CustomerInput; required?: boolean; type?: string }
+type Field = {
+  label: string
+  name: keyof CustomerInput
+  required?: boolean
+  type?: string
+  placeholder?: string
+  hint?: string
+  /** Texto fixo colado à esquerda do campo. Não é digitável e não é salvo. */
+  prefix?: string
+  /** Quando existe, o estado guarda só dígitos e isto desenha a máscara. */
+  mask?: (value: string) => string
+}
 
 const fields: Field[] = [
   { label: 'Nome', name: 'name', required: true },
-  { label: 'Telefone', name: 'phone', required: true, type: 'tel' },
+  {
+    label: 'Telefone com DDD',
+    name: 'phone',
+    required: true,
+    type: 'tel',
+    placeholder: '(81) 99999-0000',
+    // O país é fixo: PhoneNumber.IsValid só aceita número brasileiro, e o link
+    // do WhatsApp (D-15) já prefixa 55. Mostrar aqui torna visível a regra que
+    // o sistema sempre aplicou — mas continua fora do que é salvo.
+    prefix: '+55',
+    hint: 'Depois do +55 vem o DDD. Só celular recebe o orçamento por WhatsApp.',
+    mask: formatPhone,
+  },
   { label: 'CPF ou CNPJ', name: 'document' },
   { label: 'E-mail', name: 'email', type: 'email' },
 ]
@@ -32,7 +56,7 @@ export function CustomerFormPage() {
   const initial: CustomerInput = existing.data
     ? {
         name: existing.data.name,
-        phone: existing.data.phone,
+        phone: onlyDigits(existing.data.phone),
         document: existing.data.document ?? '',
         email: existing.data.email ?? '',
         notes: existing.data.notes ?? '',
@@ -56,7 +80,7 @@ function CustomerForm({ id, initial }: { id?: string; initial: CustomerInput }) 
     save.mutate(
       {
         name: form.name.trim(),
-        phone: form.phone.trim(),
+        phone: onlyDigits(form.phone),
         document: form.document?.trim() || null,
         email: form.email?.trim() || null,
         notes: form.notes?.trim() || null,
@@ -76,13 +100,33 @@ function CustomerForm({ id, initial }: { id?: string; initial: CustomerInput }) 
               {field.label}
               {field.required && <span aria-hidden="true"> *</span>}
             </span>
-            <input
-              type={field.type ?? 'text'}
-              required={field.required}
-              value={form[field.name] ?? ''}
-              onChange={(event) => setForm({ ...form, [field.name]: event.target.value })}
-              className="mt-1 w-full rounded border border-line px-3 py-2 text-sm"
-            />
+            <div
+              className={`mt-1 flex items-center rounded border border-line text-sm focus-within:border-ink-soft ${
+                field.prefix ? 'pl-3' : ''
+              }`}
+            >
+              {field.prefix && (
+                <span className="select-none pr-2 text-ink-soft">{field.prefix}</span>
+              )}
+              <input
+                type={field.type ?? 'text'}
+                required={field.required}
+                placeholder={field.placeholder}
+                value={field.mask ? field.mask(form[field.name] ?? '') : (form[field.name] ?? '')}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    [field.name]: field.mask
+                      ? toPhoneDigits(event.target.value, form[field.name] ?? '')
+                      : event.target.value,
+                  })
+                }
+                className={`w-full rounded bg-transparent py-2 outline-none ${
+                  field.prefix ? 'pr-3' : 'px-3'
+                }`}
+              />
+            </div>
+            {field.hint && <span className="mt-1 block text-xs text-ink-soft">{field.hint}</span>}
           </label>
         ))}
 
