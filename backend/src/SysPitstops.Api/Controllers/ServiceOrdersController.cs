@@ -20,6 +20,7 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         [FromQuery] Guid? mechanicId,
         [FromQuery] Guid? vehicleId,
         [FromQuery] Guid? customerId,
+        [FromQuery] string? search,
         [FromQuery] DateTimeOffset? openedFrom,
         [FromQuery] DateTimeOffset? openedTo,
         [FromQuery] int? page,
@@ -47,6 +48,18 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         if (customerId is not null)
         {
             query = query.Where(o => o.CustomerId == customerId);
+        }
+
+        // Feeds the search box the prototype puts in the top bar: "Buscar por
+        // placa ou cliente…". The plate is compared without its separator so
+        // that ABC-1D23 and ABC1D23 find the same car.
+        var term = search?.Trim().ToLowerInvariant();
+        if (!string.IsNullOrEmpty(term))
+        {
+            var plate = PlateNumber.Normalize(term);
+            query = query.Where(o =>
+                o.Customer.Name.ToLower().Contains(term)
+                || o.Vehicle.Plate.Contains(plate));
         }
 
         if (openedFrom is not null)

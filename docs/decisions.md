@@ -460,3 +460,16 @@ terminou fisicamente — o sistema estaria discordando do pátio. Baixar só at�
 zero seria pior: esconderia a falta justamente na linha que existe para
 denunciá-la. O negativo é a dívida de estoque, visível até alguém lançar a
 entrada que faltou.
+
+## D-42 — A tela de estoque ganha "Movimentar", e o sino do topo fica de fora
+**Data:** 2026-09-09
+**Decisão:** a lista de peças recebe um botão **Movimentar** que o protótipo não
+desenha, abrindo o lançamento de entrada, saída ou ajuste com o histórico
+recente da peça. O sino de notificações do topo não é implementado.
+**Alternativas:** editar o saldo no formulário da peça, como a tela sugere ao
+oferecer só "Editar"; desenhar o sino sem função.
+**Motivo:** `quantity_on_hand` é cache de `stock_movements` (seção 4 do
+`data-model.md`) — um campo de formulário que o escrevesse quebraria a regra
+logo no primeiro cadastro, e sem lançamento nenhuma peça entraria no estoque.
+O sino sai pela mesma linha da D-33 e da D-37: não há tabela de notificação nem
+evento que o alimente, e um ícone que não faz nada ensina o usuário a ignorá-lo.

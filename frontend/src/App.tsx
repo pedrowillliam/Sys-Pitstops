@@ -6,6 +6,8 @@ import { RequireAuth, RequireRole } from './auth/RequireAuth'
 import { useSession } from './auth/session'
 import { CustomerFormPage } from './customers/CustomerFormPage'
 import { CustomersPage } from './customers/CustomersPage'
+import { InventoryPage } from './inventory/InventoryPage'
+import { PartFormPage } from './inventory/PartFormPage'
 import { KanbanPage } from './service-orders/KanbanPage'
 import { OpenOrderPage } from './service-orders/OpenOrderPage'
 import { OrderDetailPage } from './service-orders/OrderDetailPage'
@@ -124,7 +126,24 @@ const router = createBrowserRouter([
         path: 'inventory',
         element: (
           <RequireRole allowed={desk}>
-            <Placeholder title="Estoque" waitingFor="a API de peças e movimentações" />
+            <InventoryPage />
+          </RequireRole>
+        ),
+      },
+      // `new` antes de `:id`, como em customers: o literal precisa ganhar a rota.
+      {
+        path: 'inventory/new',
+        element: (
+          <RequireRole allowed={desk}>
+            <PartFormPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: 'inventory/:id',
+        element: (
+          <RequireRole allowed={desk}>
+            <PartFormPage />
           </RequireRole>
         ),
       },

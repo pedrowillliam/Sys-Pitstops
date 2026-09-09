@@ -119,10 +119,18 @@ startup da aplicação (D-28). `Dockerfile` e `render.yaml` ficam na raiz.
 Telas no Figma (arquivo "Sys-PitStop", fileKey `jGZ6p2AhbpQAVcy7wV6K9o`).
 Estão implementadas: **Clientes** (`frontend/src/customers/`), **Kanban**,
 **abertura e detalhe da OS** e **Minha fila** (`frontend/src/service-orders/`),
-e **Orçamento** mais a página pública de aprovação (`frontend/src/quotes/`). As
-demais ainda são placeholder (`frontend/src/pages/Placeholder.tsx`). O menu e os papéis que
-enxergam cada item estão em `frontend/src/layout/navigation.ts`, com a flag
-`ready` marcando o que já existe.
+**Orçamento** mais a página pública de aprovação (`frontend/src/quotes/`) e
+**Estoque** (`frontend/src/inventory/`). Faltam **Dashboard**, **Mecânicos** e
+**Configurações**, ainda placeholder (`frontend/src/pages/Placeholder.tsx`). O
+menu e os papéis que enxergam cada item estão em
+`frontend/src/layout/navigation.ts`, com a flag `ready` marcando o que já existe.
+
+O **shell** (`frontend/src/layout/`) segue o protótipo: topo azul com o logo em
+cartão branco, busca global e usuário; rail escuro flutuante de ícones à
+esquerda. A paleta em `frontend/src/index.css` foi amostrada das telas do Figma
+— `#173676` no topo e no botão primário, `#0f2942` no rail e na faixa de
+título — e a fonte é Montserrat, como no desenho. Toda tela abre com
+`PageHeader`, que é a faixa escura do protótipo.
 
 O protótipo traz campos que o modelo não tem — prioridade e tempo estimado
 foram deixados de fora (D-33 e D-34), o "Editar" da tela de orçamento não
@@ -138,8 +146,7 @@ que falta e as divergências entre protótipo e modelo de dados.
 **Consulte o Figma ao implementar cada tela.** O arquivo tem bem mais frames do
 que os nomes de rota sugerem — além de Kanban, Dashboard e Mecânicos, há
 `Cadastro serviço`, `Cadastro Estoque`, `Cotação`, `Orçamento` e as telas
-`Mobile - Mecânico`. O `AppShell` atual ainda **diverge** do protótipo, que tem
-barra lateral flutuante de ícones e busca global no topo.
+`Mobile - Mecânico`.
 
 ## Documentação de referência
 
