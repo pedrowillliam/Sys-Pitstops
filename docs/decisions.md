@@ -393,3 +393,41 @@ outro: a API expira o que estava de pé e cria um novo registro. Prioridade não
 existe no modelo (D-33), e situação é o que o atendente realmente filtra, já que
 o trabalho da tela é cobrar quem não respondeu.
 
+## D-37 — A abertura da OS corta os campos do protótipo que não têm coluna
+**Data:** 2026-09-08
+**Decisão:** a tela "Abertura de Ordem de Serviço" fica com cliente (filtro),
+veículo, mecânico, previsão de entrega, quilometragem e problema relatado. Saem
+as caixas de "Serviços a Realizar", o "Valor Estimado (R$)", "Outras Informações
+de Cobrança" e "Observações Adicionais".
+**Alternativas:** criar as colunas; ou guardar tudo num campo de texto livre.
+**Motivo:** serviço no modelo é item da OS, com descrição **e preço congelado**
+(D-07) — uma caixa marcada não carrega preço, então não vira item. E "valor
+estimado" briga de frente com a D-09: o total é calculado, nunca armazenado; se
+fosse guardado, nasceria divergindo do total dos itens no primeiro lançamento.
+Os dois campos de texto não têm coluna e não apareceram em nenhuma regra de
+negócio. Mesma linha da D-33 e da D-34.
+
+## D-38 — Mecânico é opcional na abertura e obrigatório para entrar em análise
+**Data:** 2026-09-08
+**Decisão:** `mechanic_id` continua nulo em `REQUESTED` e `CONFIRMED`. A
+transição para `IN_YARD` é recusada sem responsável definido. O endpoint de
+abertura passa a aceitar `mechanicId` para quem já quiser atribuir.
+**Alternativas:** exigir na abertura, como o protótipo marca; ou nunca exigir.
+**Motivo:** o carro chega ao balcão antes de alguém assumir — exigir na abertura
+obrigaria o atendente a escolher um nome no chute. Mas "Em Análise" é onde o
+trabalho começa: sem responsável a OS não entra na fila de ninguém e não há quem
+responda pelo laudo. A regra fica na máquina de estados, e não na tela, para o
+quadro e a API recusarem igual.
+
+## D-39 — O orçamento sai do cartão do Kanban para a tela da OS
+**Data:** 2026-09-08
+*Revisa D-36*
+**Decisão:** o botão de gerar orçamento deixa o cartão do Kanban e passa a viver
+na tela de detalhe da OS, ao lado dos itens. O cartão fica com "Mover" e
+"Abrir".
+**Alternativas:** manter nos dois lugares.
+**Motivo:** a D-36 colocou o painel no cartão porque não havia tela de OS. Com
+ela, o orçamento fica ao lado dos itens que o compõem e do total que vai ao
+cliente — que é o que o atendente confere antes de enviar. Duplicar o botão
+faria a mesma ação existir em dois lugares com contextos diferentes.
+
