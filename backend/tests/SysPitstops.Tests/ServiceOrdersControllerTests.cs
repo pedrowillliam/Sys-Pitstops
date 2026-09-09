@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SysPitstops.Api.Contracts;
 using SysPitstops.Api.Controllers;
@@ -24,6 +24,50 @@ public class ServiceOrderOpeningTests
         Assert.Equal("João Mendes", created.CustomerName);
         Assert.Equal("Fiat Strada 2021", created.VehicleDescription);
         Assert.Equal(ServiceOrderStatus.Requested, created.Status);
+    }
+
+    /// <summary>D-38: o mecânico é opcional na abertura — o carro chega antes de
+    /// alguém assumir.</summary>
+    [Fact]
+    public async Task OpeningWithoutAMechanicIsAllowed()
+    {
+        var db = TestApi.NewDatabase();
+        var vehicle = db.AddVehicle(db.AddCustomer());
+
+        var created = TestApi.Body(await Controller(db).Open(
+            new OpenServiceOrderRequest { VehicleId = vehicle.Id }, default));
+
+        Assert.Null(created.MechanicId);
+    }
+
+    [Fact]
+    public async Task OpeningMayAlreadyAssignTheMechanic()
+    {
+        var db = TestApi.NewDatabase();
+        var vehicle = db.AddVehicle(db.AddCustomer());
+        var mechanic = db.AddUser("Roberto", UserRole.Mechanic);
+
+        var created = TestApi.Body(await Controller(db).Open(
+            new OpenServiceOrderRequest { VehicleId = vehicle.Id, MechanicId = mechanic.Id },
+            default));
+
+        Assert.Equal(mechanic.Id, created.MechanicId);
+        Assert.Equal("Roberto", created.MechanicName);
+    }
+
+    [Fact]
+    public async Task OpeningRejectsSomeoneWhoIsNotAMechanic()
+    {
+        var db = TestApi.NewDatabase();
+        var vehicle = db.AddVehicle(db.AddCustomer());
+        var attendant = db.AddUser("Ana", UserRole.Attendant);
+
+        var result = await Controller(db).Open(
+            new OpenServiceOrderRequest { VehicleId = vehicle.Id, MechanicId = attendant.Id },
+            default);
+
+        result.Result.AssertRejects("MechanicId");
+        Assert.Empty(db.ServiceOrders);
     }
 
     // D-08: the snapshot is the whole point. Selling the car must not rewrite

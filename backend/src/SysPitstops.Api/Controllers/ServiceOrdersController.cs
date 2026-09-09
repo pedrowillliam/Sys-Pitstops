@@ -113,12 +113,20 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
             return ValidationProblem(ModelState);
         }
 
+        if (!await MechanicExists(request.MechanicId, workshopId, ct))
+        {
+            ModelState.AddModelError(
+                nameof(request.MechanicId), "Mecânico não encontrado ou inativo.");
+            return ValidationProblem(ModelState);
+        }
+
         var now = DateTimeOffset.UtcNow;
         var order = new ServiceOrder
         {
             WorkshopId = workshopId,
             VehicleId = vehicle.Id,
             CustomerId = vehicle.OwnerId,
+            MechanicId = request.MechanicId,
             CreatedBy = User.Id(),
             Status = ServiceOrderStatus.Requested,
             Mileage = request.Mileage,
@@ -168,20 +176,11 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
             return OrderIsClosed(order.Status);
         }
 
-        if (request.MechanicId is { } mechanicId)
+        if (!await MechanicExists(request.MechanicId, order.WorkshopId, ct))
         {
-            var isMechanic = await db.Users.AnyAsync(
-                u => u.Id == mechanicId
-                  && u.WorkshopId == order.WorkshopId
-                  && u.IsActive
-                  && u.Role == UserRole.Mechanic, ct);
-
-            if (!isMechanic)
-            {
-                ModelState.AddModelError(
-                    nameof(request.MechanicId), "Mecânico não encontrado ou inativo.");
-                return ValidationProblem(ModelState);
-            }
+            ModelState.AddModelError(
+                nameof(request.MechanicId), "Mecânico não encontrado ou inativo.");
+            return ValidationProblem(ModelState);
         }
 
         order.MechanicId = request.MechanicId;
@@ -278,7 +277,13 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         foreach (var target in reachable)
         {
             var plain = new ServiceOrderTransition(
-                order.Status, target, role, isAssigned, hasQuote, WaivesApproval: false);
+                order.Status,
+                target,
+                role,
+                IsAssignedMechanic: isAssigned,
+                HasMechanic: order.MechanicId is not null,
+                HasApprovedQuote: hasQuote,
+                WaivesApproval: false);
 
             if (ServiceOrderWorkflow.Check(plain).Allowed)
             {
@@ -336,6 +341,7 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
             request.ToStatus,
             User.Role(),
             IsAssignedMechanic: order.MechanicId is not null && order.MechanicId == User.Id(),
+            HasMechanic: order.MechanicId is not null,
             HasApprovedQuote: await HasApprovedQuote(order.Id, ct),
             WaivesApproval: request.WaiveApproval));
 
@@ -662,6 +668,22 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
     private static ServiceOrderItemResponse Describe(ServiceOrderItem item) =>
         new(item.Id, item.ItemType, item.PartId, item.Description,
             item.Quantity, item.UnitPrice, item.Quantity * item.UnitPrice, item.CreatedAt);
+
+    /// <summary>Null passa: o mecânico é opcional em toda a vida da ordem, e
+    /// quem exige responsável é a máquina de estados, na entrada em IN_YARD.</summary>
+    private async Task<bool> MechanicExists(Guid? mechanicId, int workshopId, CancellationToken ct)
+    {
+        if (mechanicId is not { } id)
+        {
+            return true;
+        }
+
+        return await db.Users.AnyAsync(
+            u => u.Id == id
+              && u.WorkshopId == workshopId
+              && u.IsActive
+              && u.Role == UserRole.Mechanic, ct);
+    }
 
     private NotFoundObjectResult OrderNotFound() => NotFound(new ProblemDetails
     {

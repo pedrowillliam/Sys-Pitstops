@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using SysPitstops.Api.Domain;
 
 namespace SysPitstops.Api.Contracts;
@@ -13,6 +13,10 @@ public record OpenServiceOrderRequest
 {
     [Required]
     public Guid VehicleId { get; init; }
+
+    /// <summary>Opcional: o carro chega antes de alguém assumir. A partir de
+    /// IN_YARD a ordem passa a exigir responsável (D-38).</summary>
+    public Guid? MechanicId { get; init; }
 
     [Range(0, 9_999_999, ErrorMessage = "Quilometragem inválida.")]
     public int? Mileage { get; init; }
