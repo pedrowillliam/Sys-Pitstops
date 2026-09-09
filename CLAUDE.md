@@ -130,6 +130,11 @@ existe porque o orçamento é imutável (D-36), e a abertura de OS corta os
 serviços em caixas e o valor estimado (D-37). Ao implementar uma tela nova, confira se
 os campos desenhados existem no schema antes de assumir que sim.
 
+A extração do protótipo está em `design/figma/` — PNG de 15 telas, o código de
+referência do login e `estrutura-completa.xml` com a geometria e os textos das
+32. Leia `design/figma/LEIA-ME.md` antes: ele traz a cobertura, como extrair o
+que falta e as divergências entre protótipo e modelo de dados.
+
 **Consulte o Figma ao implementar cada tela.** O arquivo tem bem mais frames do
 que os nomes de rota sugerem — além de Kanban, Dashboard e Mecânicos, há
 `Cadastro serviço`, `Cadastro Estoque`, `Cotação`, `Orçamento` e as telas
