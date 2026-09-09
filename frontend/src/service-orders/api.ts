@@ -18,12 +18,15 @@ function messageFrom(error: unknown, fallback: string): string {
   return problem?.detail ?? problem?.title ?? fallback
 }
 
-export function useBoard(mechanicId?: string) {
+/** `search` comes from the box in the top bar and is what the API filters by:
+ *  customer name or plate. Filtering on the server keeps the column counts
+ *  honest — a board filtered in the browser would still count what it hid. */
+export function useBoard(mechanicId?: string, search?: string) {
   return useQuery({
-    queryKey: [...serviceOrdersKey, 'board', mechanicId ?? 'all'],
+    queryKey: [...serviceOrdersKey, 'board', mechanicId ?? 'all', search ?? ''],
     queryFn: async () => {
       const { data, error } = await api.GET('/api/service-orders', {
-        params: { query: { mechanicId, pageSize: boardPageSize } },
+        params: { query: { mechanicId, search: search || undefined, pageSize: boardPageSize } },
       })
 
       if (error || !data) {

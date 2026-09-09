@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { PageHeader } from '../layout/PageHeader'
+import { PlusCircleIcon } from '../layout/icons'
 import { pageSize, useCustomers, useSetCustomerActive, type Customer } from './api'
 
 /** "Fiat Strada 2021" — the year is optional in the database. */
@@ -95,9 +97,19 @@ export function CustomersPage() {
 
   return (
     <section>
-      <header className="rounded bg-brand px-4 py-3 text-sm font-medium text-white">
-        {includeInactive ? 'Todos os clientes:' : 'Clientes com registro ativo:'}
-      </header>
+      <PageHeader
+        icon="users"
+        title={includeInactive ? 'Todos os clientes:' : 'Clientes com registro ativo:'}
+        actions={
+          <Link
+            to="/customers/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand/90"
+          >
+            <PlusCircleIcon className="h-5 w-5" />
+            Cadastrar novo cliente
+          </Link>
+        }
+      />
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
@@ -121,13 +133,6 @@ export function CustomersPage() {
             Mostrar inativos
           </label>
         </div>
-
-        <Link
-          to="/customers/new"
-          className="rounded bg-brand px-4 py-2 text-sm font-medium text-white"
-        >
-          Cadastrar novo cliente
-        </Link>
       </div>
 
       {isError && (

@@ -201,7 +201,9 @@ public class ServiceOrderListTests
         db.AddServiceOrder(status: ServiceOrderStatus.InYard);
 
         var page = TestApi.Body(await Controller(db).List(
-            ServiceOrderStatus.InYard, null, null, null, null, null, null, null, default));
+            status: ServiceOrderStatus.InYard, mechanicId: null, vehicleId: null,
+            customerId: null, search: null, openedFrom: null, openedTo: null,
+            page: null, pageSize: null, default));
 
         Assert.Equal(2, page.Total);
         Assert.All(page.Items, o => Assert.Equal(ServiceOrderStatus.InYard, o.Status));
@@ -217,10 +219,42 @@ public class ServiceOrderListTests
         await db.SaveChangesAsync();
 
         var page = TestApi.Body(await Controller(db).List(
-            null, null, null, null, null, null, null, null, default));
+            status: null, mechanicId: null, vehicleId: null, customerId: null,
+            search: null, openedFrom: null, openedTo: null,
+            page: null, pageSize: null, default));
 
         Assert.Equal(1, page.Total);
     }
+
+    // The search box the prototype puts in the top bar says "placa ou cliente",
+    // so both have to answer — and the plate has to answer with or without the
+    // dash the attendant types out of habit.
+    [Fact]
+    public async Task TheSearchFindsAnOrderByPlateOrByCustomerName()
+    {
+        var db = TestApi.NewDatabase();
+        var wanted = db.AddServiceOrder();
+        db.Customers.Single(c => c.Id == wanted.CustomerId).Name = "Marina Duarte";
+        db.Vehicles.Single(v => v.Id == wanted.VehicleId).Plate = "ABC1D23";
+        db.AddServiceOrder();
+        await db.SaveChangesAsync();
+
+        var byName = await Search(db, "marina");
+        var byPlate = await Search(db, "abc1d23");
+        var byDashedPlate = await Search(db, "ABC-1D23");
+        var byNothing = await Search(db, "   ");
+
+        Assert.Equal(wanted.Id, Assert.Single(byName.Items).Id);
+        Assert.Equal(wanted.Id, Assert.Single(byPlate.Items).Id);
+        Assert.Equal(wanted.Id, Assert.Single(byDashedPlate.Items).Id);
+        Assert.Equal(2, byNothing.Total);
+    }
+
+    private static async Task<PagedResult<ServiceOrderSummary>> Search(AppDbContext db, string term) =>
+        TestApi.Body(await Controller(db).List(
+            status: null, mechanicId: null, vehicleId: null, customerId: null,
+            search: term, openedFrom: null, openedTo: null,
+            page: null, pageSize: null, default));
 
     [Fact]
     public async Task TheQueueHoldsOnlyWhatIsStillToDo()

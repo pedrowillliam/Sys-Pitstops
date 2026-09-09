@@ -102,15 +102,26 @@ internal static class TestApi
     }
 
     public static Part AddPart(
-        this AppDbContext db, string name = "Peça", decimal salePrice = 100m)
+        this AppDbContext db,
+        string name = "Peça",
+        decimal salePrice = 100m,
+        decimal quantityOnHand = 0m,
+        decimal minQuantity = 0m,
+        decimal costPrice = 0m,
+        string? sku = null,
+        bool isActive = true)
     {
         var part = new Part
         {
             Id = Guid.NewGuid(),
             WorkshopId = WorkshopId,
-            Sku = $"SKU-{Random.Shared.Next(100000, 999999)}",
+            Sku = sku ?? $"SKU-{Random.Shared.Next(100000, 999999)}",
             Name = name,
             SalePrice = salePrice,
+            CostPrice = costPrice,
+            QuantityOnHand = quantityOnHand,
+            MinQuantity = minQuantity,
+            IsActive = isActive,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
@@ -153,18 +164,22 @@ internal static class TestApi
         return order;
     }
 
+    // A null part makes it a service item — the common case. Passing one makes
+    // it a PART item, which is what the stock write-off of D-11 reads.
     public static ServiceOrderItem AddItem(
         this AppDbContext db,
         ServiceOrder order,
         string description,
         decimal quantity,
-        decimal unitPrice)
+        decimal unitPrice,
+        Part? part = null)
     {
         var item = new ServiceOrderItem
         {
             Id = Guid.NewGuid(),
             ServiceOrderId = order.Id,
-            ItemType = ItemType.Service,
+            ItemType = part is null ? ItemType.Service : ItemType.Part,
+            PartId = part?.Id,
             Description = description,
             Quantity = quantity,
             UnitPrice = unitPrice,

@@ -1,16 +1,24 @@
 @import 'tailwindcss';
 
-/* Provisional palette. The Figma file ("Sys-PitStop") is the source for the
-   real one; it is kept here as tokens so restyling is one file, not a sweep
-   through every component. */
+/* Palette read off the Figma file ("Sys-PitStop"), not invented here: the two
+   navies are sampled from the prototype's top bar and side rail, and the rest
+   are the Tailwind values the design already used — which is why they look
+   familiar. design/figma/img/ has the screens these came from. */
 @theme {
-  --color-surface: #f6f7f9;
+  /* Topo e botão primário. */
+  --color-brand: #173676;
+  /* Rail lateral e faixa de título da seção. */
+  --color-brand-deep: #0f2942;
   --color-panel: #ffffff;
-  --color-ink: #0b1220;
-  --color-ink-soft: #55617a;
-  --color-line: #e2e6ee;
-  --color-brand: #0b1220;
-  --color-accent: #f59e0b;
+  /* Neutro claro para hover e faixas dentro dos cartões. */
+  --color-surface: #f1f5f9;
+  --color-ink: #0f172a;
+  --color-ink-soft: #64748b;
+  --color-line: #e2e8f0;
+  /* O verde do "Online" no topo é mais frio que o emerald-500 das etiquetas. */
+  --color-online: #28c18e;
+
+  --font-sans: 'Montserrat', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 html,
@@ -20,6 +28,9 @@ body,
 }
 
 body {
-  background-color: var(--color-surface);
+  /* O mesmo gradiente do protótipo: branco no canto superior direito,
+     slate-400 no inferior esquerdo. Fixo para não deslizar com a rolagem. */
+  background: linear-gradient(237deg, #ffffff 25.58%, #94a3b8 100%) fixed;
   color: var(--color-ink);
+  font-family: var(--font-sans);
 }

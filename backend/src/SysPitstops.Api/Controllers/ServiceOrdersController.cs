@@ -20,6 +20,7 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         [FromQuery] Guid? mechanicId,
         [FromQuery] Guid? vehicleId,
         [FromQuery] Guid? customerId,
+        [FromQuery] string? search,
         [FromQuery] DateTimeOffset? openedFrom,
         [FromQuery] DateTimeOffset? openedTo,
         [FromQuery] int? page,
@@ -47,6 +48,18 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         if (customerId is not null)
         {
             query = query.Where(o => o.CustomerId == customerId);
+        }
+
+        // Feeds the search box the prototype puts in the top bar: "Buscar por
+        // placa ou cliente…". The plate is compared without its separator so
+        // that ABC-1D23 and ABC1D23 find the same car.
+        var term = search?.Trim().ToLowerInvariant();
+        if (!string.IsNullOrEmpty(term))
+        {
+            var plate = PlateNumber.Normalize(term);
+            query = query.Where(o =>
+                o.Customer.Name.ToLower().Contains(term)
+                || o.Vehicle.Plate.Contains(plate));
         }
 
         if (openedFrom is not null)
@@ -377,9 +390,7 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
         if (request.ToStatus == ServiceOrderStatus.Ready)
         {
             order.ClosedAt = now;
-
-            // D-11 writes the stock off here, in this same transaction. That
-            // lands in the stock pull request of week 3.
+            await WriteStockOff(order, now, ct);
         }
 
         order.Status = request.ToStatus;
@@ -633,6 +644,68 @@ public class ServiceOrdersController(AppDbContext db) : ControllerBase
             row.Order.ClosedAt);
     }
 
+
+    /// <summary>
+    /// D-11: the parts leave stock when the work is finished, never when it is
+    /// requested — there is no reservation in the MVP. The movements and the new
+    /// balances ride on the same SaveChangesAsync as the status change, so the
+    /// order cannot reach READY with the stock left untouched.
+    /// <para>
+    /// The balance is allowed to go negative. D-11 accepted that two orders can
+    /// promise the same part, and refusing here would strand an order that is
+    /// physically finished; the stock list flags the negative balance instead
+    /// (D-41).
+    /// </para>
+    /// </summary>
+    private async Task WriteStockOff(ServiceOrder order, DateTimeOffset now, CancellationToken ct)
+    {
+        // Grouped because the same part may have been added twice: one row per
+        // part keeps quantity positive and the history readable.
+        var used = await db.ServiceOrderItems
+            .Where(i => i.ServiceOrderId == order.Id
+                        && i.ItemType == ItemType.Part
+                        && i.PartId != null)
+            .GroupBy(i => i.PartId!.Value)
+            .Select(g => new { PartId = g.Key, Quantity = g.Sum(i => i.Quantity) })
+            .ToListAsync(ct);
+
+        if (used.Count == 0)
+        {
+            return;
+        }
+
+        var ids = used.Select(u => u.PartId).ToList();
+        var parts = await db.Parts
+            .Where(p => ids.Contains(p.Id) && p.WorkshopId == order.WorkshopId)
+            .ToDictionaryAsync(p => p.Id, ct);
+
+        foreach (var use in used)
+        {
+            if (!parts.TryGetValue(use.PartId, out var part))
+            {
+                continue;
+            }
+
+            part.QuantityOnHand -= use.Quantity;
+            part.UpdatedAt = now;
+
+            db.StockMovements.Add(new StockMovement
+            {
+                WorkshopId = order.WorkshopId,
+                PartId = part.Id,
+                MovementType = MovementType.Out,
+                Quantity = use.Quantity,
+                // The cost of the part, not the price frozen on the item: the
+                // movement records what leaving stock cost the workshop, while
+                // D-07 keeps the item showing what the customer was charged.
+                UnitCost = part.CostPrice,
+                ServiceOrderId = order.Id,
+                UserId = User.Id(),
+                Note = $"Baixa automática da OS #{order.Number}.",
+                CreatedAt = now
+            });
+        }
+    }
 
     private Task<ServiceOrder?> Editable(Guid id, CancellationToken ct)
     {

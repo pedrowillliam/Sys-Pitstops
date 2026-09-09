@@ -432,3 +432,44 @@ ela, o orçamento fica ao lado dos itens que o compõem e do total que vai ao
 cliente — que é o que o atendente confere antes de enviar. Duplicar o botão
 faria a mesma ação existir em dois lugares com contextos diferentes.
 
+
+## D-40 — Um ajuste de estoque registra o saldo contado, não a diferença
+**Data:** 2026-09-09
+**Decisão:** em `stock_movements`, `IN` e `OUT` carregam quanto se moveu; um
+`ADJUSTMENT` carrega o **saldo contado**. Reproduzir o histórico em ordem
+reconstrói o saldo: `IN` soma, `OUT` subtrai, `ADJUSTMENT` fixa. Contar zero é o
+único saldo que a coluna não expressa, e é gravado como o `IN` ou o `OUT` que
+leva a peça a zero.
+**Alternativas:** gravar a diferença no `ADJUSTMENT`; ou abandonar o
+`ADJUSTMENT` e lançar toda correção como `IN`/`OUT` com nota.
+**Motivo:** `quantity` tem `CHECK (quantity > 0)` e não existe coluna de sinal,
+então uma diferença não teria onde guardar a direção — e um histórico que não
+reconstrói o saldo derruba a regra da seção 4 do `data-model.md`, que é o que
+torna o estoque auditável. Lançar tudo como `IN`/`OUT` reconcilia, mas uma
+contagem de inventário passaria a ser indistinguível de uma compra no relatório.
+
+## D-41 — A baixa na conclusão pode deixar o saldo negativo
+**Data:** 2026-09-09
+**Decisão:** a transição para `READY` grava os `OUT` e atualiza
+`quantity_on_hand` mesmo quando o saldo não cobre a quantidade usada. O saldo
+fica negativo e a lista de estoque marca a peça.
+**Alternativas:** recusar a transição por falta de saldo; ou baixar só até zero.
+**Motivo:** a D-11 já aceitou que duas OS prometam a mesma peça, e é isso que
+produz o negativo. Recusar deixaria presa em execução uma OS cujo serviço já
+terminou fisicamente — o sistema estaria discordando do pátio. Baixar só até
+zero seria pior: esconderia a falta justamente na linha que existe para
+denunciá-la. O negativo é a dívida de estoque, visível até alguém lançar a
+entrada que faltou.
+
+## D-42 — A tela de estoque ganha "Movimentar", e o sino do topo fica de fora
+**Data:** 2026-09-09
+**Decisão:** a lista de peças recebe um botão **Movimentar** que o protótipo não
+desenha, abrindo o lançamento de entrada, saída ou ajuste com o histórico
+recente da peça. O sino de notificações do topo não é implementado.
+**Alternativas:** editar o saldo no formulário da peça, como a tela sugere ao
+oferecer só "Editar"; desenhar o sino sem função.
+**Motivo:** `quantity_on_hand` é cache de `stock_movements` (seção 4 do
+`data-model.md`) — um campo de formulário que o escrevesse quebraria a regra
+logo no primeiro cadastro, e sem lançamento nenhuma peça entraria no estoque.
+O sino sai pela mesma linha da D-33 e da D-37: não há tabela de notificação nem
+evento que o alimente, e um ícone que não faz nada ensina o usuário a ignorá-lo.
