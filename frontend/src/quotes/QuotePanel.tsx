@@ -1,7 +1,7 @@
 import { useOrder } from '../service-orders/api'
 import { useOrderQuotes, useSendQuote, type OrderQuote } from './api'
 import { money } from './publicApi'
-import { hasWhatsApp, publicQuoteUrl, whatsAppLink } from './whatsapp'
+import { hasWhatsApp, isLocalOrigin, publicQuoteUrl, whatsAppLink } from './whatsapp'
 
 const statusLabels: Record<OrderQuote['status'], string> = {
   SENT: 'Aguardando resposta',
@@ -102,6 +102,11 @@ export function QuotePanel({ orderId, onClose }: { orderId: string; onClose: () 
             {quotes && quotes.length > 0 && (
               <>
                 <h3 className="mt-5 text-sm font-semibold">Enviados</h3>
+                {isLocalOrigin() && (
+                  <p className="mt-1 text-xs text-amber-800">
+                    Ambiente local: o link só abre nesta máquina.
+                  </p>
+                )}
                 <ul className="mt-1 space-y-2">
                   {quotes.map((quote) => (
                     <li

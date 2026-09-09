@@ -44,3 +44,21 @@ export function hasWhatsApp(phone: string): boolean {
   const digits = phone.replace(/\D/g, '')
   return digits.length === 11 && digits[2] === '9'
 }
+
+/** O link é montado com a origem de onde a página foi aberta, então em produção
+ *  ele já sai com o endereço do Render (D-26: um serviço só serve a API e a
+ *  SPA). Rodando local, sai com o endereço da máquina — que não abre em lugar
+ *  nenhum além dela. Isto existe para ninguém mandar um link morto ao cliente
+ *  durante uma demonstração. */
+export function isLocalOrigin(): boolean {
+  const { hostname } = window.location
+
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '[::1]' ||
+    /^192\.168\./.test(hostname) ||
+    /^10\./.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
+  )
+}

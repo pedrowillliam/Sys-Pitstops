@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { pageSize, useQuotes, type Quote, type QuoteStatus } from './api'
 import { money } from './publicApi'
-import { hasWhatsApp, publicQuoteUrl, whatsAppLink } from './whatsapp'
+import { hasWhatsApp, isLocalOrigin, publicQuoteUrl, whatsAppLink } from './whatsapp'
 
 const filters: { key: QuoteStatus | 'ALL'; label: string }[] = [
   { key: 'ALL', label: 'Todos' },
@@ -108,6 +108,16 @@ export function QuotesPage() {
       <header className="rounded bg-brand px-4 py-3 text-sm font-medium text-white">
         Orçamentos
       </header>
+
+      {/* O link carrega a origem de onde esta página foi aberta. Rodando local
+          ele não abre na casa de ninguém, e é fácil esquecer disso numa
+          demonstração. */}
+      {isLocalOrigin() && (
+        <p className="mt-4 rounded border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+          Ambiente local: os links gerados apontam para <code>{window.location.host}</code> e
+          só abrem nesta máquina. Não envie a clientes.
+        </p>
+      )}
 
       <div className="mt-4 flex flex-wrap gap-2">
         {filters.map((filter) => (
