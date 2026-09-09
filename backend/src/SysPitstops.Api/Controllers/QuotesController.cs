@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +16,77 @@ public class QuotesController(AppDbContext db) : ControllerBase
 {
     public static readonly TimeSpan Validity = TimeSpan.FromDays(7);
 
+    /// <summary>The quote screen lists the workshop, not one order: the
+    /// attendant opens it to see who has not answered yet. It hangs off
+    /// /api/quotes, outside this controller's per-order prefix.</summary>
+    [HttpGet("~/api/quotes")]
+    [ProducesResponseType(typeof(PagedResult<QuoteListItem>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<QuoteListItem>>> ListAll(
+        [FromQuery] QuoteStatus? status,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
+        CancellationToken ct)
+    {
+        var workshopId = User.WorkshopId();
+        var now = DateTimeOffset.UtcNow;
+        var (currentPage, size) = PagedResult<QuoteListItem>.Clamp(page, pageSize);
+
+        var query = db.Quotes.AsNoTracking()
+            .Where(q => q.ServiceOrder.WorkshopId == workshopId);
+
+        if (status is not null)
+        {
+            query = query.Where(QuoteLifecycle.HasStatus(status.Value, now));
+        }
+
+        var total = await query.CountAsync(ct);
+
+        var rows = await query
+            .OrderByDescending(q => q.SentAt)
+            .Skip((currentPage - 1) * size)
+            .Take(size)
+            .Select(q => new
+            {
+                q.Id,
+                q.ServiceOrderId,
+                q.ServiceOrder.Number,
+                OrderStatus = q.ServiceOrder.Status,
+                q.Status,
+                q.TotalAmount,
+                CustomerName = q.ServiceOrder.Customer.Name,
+                CustomerPhone = q.ServiceOrder.Customer.Phone,
+                q.ServiceOrder.Vehicle.Plate,
+                q.ServiceOrder.Vehicle.Brand,
+                q.ServiceOrder.Vehicle.Model,
+                q.ServiceOrder.Vehicle.ModelYear,
+                q.PublicToken,
+                SentByName = q.SentByUser.Name,
+                q.SentAt,
+                q.ExpiresAt,
+                q.RespondedAt
+            })
+            .ToListAsync(ct);
+
+        var items = rows.Select(r => new QuoteListItem(
+            r.Id,
+            r.ServiceOrderId,
+            r.Number,
+            r.OrderStatus,
+            r.Status == QuoteStatus.Sent && r.ExpiresAt <= now ? QuoteStatus.Expired : r.Status,
+            r.TotalAmount,
+            r.CustomerName,
+            r.CustomerPhone,
+            r.Plate,
+            VehicleLabel.Describe(r.Brand, r.Model, r.ModelYear),
+            r.PublicToken,
+            r.SentByName,
+            r.SentAt,
+            r.ExpiresAt,
+            r.RespondedAt)).ToList();
+
+        return Ok(new PagedResult<QuoteListItem>(items, currentPage, size, total));
+    }
+
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<QuoteResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -28,6 +99,8 @@ public class QuotesController(AppDbContext db) : ControllerBase
         }
 
         var quotes = await db.Quotes.AsNoTracking()
+            .Include(q => q.ServiceOrder)
+            .Include(q => q.SentByUser)
             .Where(q => q.ServiceOrderId == orderId)
             .OrderByDescending(q => q.SentAt)
             .ToListAsync(ct);
@@ -105,6 +178,9 @@ public class QuotesController(AppDbContext db) : ControllerBase
 
         db.Quotes.Add(quote);
         await db.SaveChangesAsync(ct);
+
+        quote.ServiceOrder = order;
+        await db.Entry(quote).Reference(q => q.SentByUser).LoadAsync(ct);
 
         return CreatedAtAction(nameof(List), new { orderId }, Describe(quote));
     }
