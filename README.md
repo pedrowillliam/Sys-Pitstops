@@ -211,6 +211,7 @@ não comporta review como gargalo. O PR deve referenciar a issue correspondente.
 | [`docs/data-model.md`](./docs/data-model.md) | Modelo de dados, regras de negócio e decisões de modelagem |
 | [`docs/schema.sql`](./docs/schema.sql) | DDL de referência do PostgreSQL |
 | [`docs/decisions.md`](./docs/decisions.md) | Registro de decisões técnicas |
+| [`design/figma/`](./design/figma) | Telas do protótipo — PNG, estrutura das 32 telas e o código de referência do conector |
 
 O contrato da API é gerado automaticamente pelo Swagger em
 `http://localhost:5000/swagger`. O cliente TypeScript do front é gerado a
