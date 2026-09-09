@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { QuotePanel } from '../quotes/QuotePanel'
+import { Link } from 'react-router'
 import {
   useAllowedTransitions,
   useBoard,
@@ -12,20 +12,13 @@ import {
   columns,
   formatDay,
   formatMoney,
+  needsMechanicToAdvance,
   onTheBoard,
   statusLabels,
   yardSummary,
 } from './board'
 
-function OrderCard({
-  order,
-  onMove,
-  onQuote,
-}: {
-  order: ServiceOrder
-  onMove: (o: ServiceOrder) => void
-  onQuote: (o: ServiceOrder) => void
-}) {
+function OrderCard({ order, onMove }: { order: ServiceOrder; onMove: (o: ServiceOrder) => void }) {
   const scheduled = formatDay(order.scheduledAt)
 
   return (
@@ -62,15 +55,13 @@ function OrderCard({
         >
           Mover
         </button>
-        {/* D-15: o orçamento nasce da OS, e é daqui que o atendente tira o
-            link do WhatsApp. */}
-        <button
-          type="button"
-          onClick={() => onQuote(order)}
-          className="flex-1 rounded border border-line px-2 py-1 text-xs font-medium hover:bg-surface"
+        {/* D-36: itens, orçamento e responsável ficam na OS, não no cartão. */}
+        <Link
+          to={`/service-orders/${order.id}`}
+          className="flex-1 rounded border border-line px-2 py-1 text-center text-xs font-medium hover:bg-surface"
         >
-          Orçamento
-        </button>
+          Abrir
+        </Link>
       </div>
     </li>
   )
@@ -108,6 +99,20 @@ function MovePanel({ order, onClose }: { order: ServiceOrder; onClose: () => voi
         <p className="mt-1 text-sm text-ink-soft">
           Situação atual: {statusLabels[order.status]}
         </p>
+
+        {/* D-38: a transição para Em Análise some da lista quando não há
+            responsável. Sem isto o atendente vê só "Cancelar" e não descobre
+            por quê. */}
+        {needsMechanicToAdvance(order) && (
+          <p className="mt-4 rounded bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            Para avançar para {statusLabels.IN_YARD}, a OS precisa de um mecânico
+            responsável.{' '}
+            <Link to={`/service-orders/${order.id}`} className="font-medium underline">
+              Abrir a OS para definir
+            </Link>
+            .
+          </p>
+        )}
 
         {isPending ? (
           <p className="mt-4 text-sm text-ink-soft">Carregando ações…</p>
@@ -180,7 +185,6 @@ function MovePanel({ order, onClose }: { order: ServiceOrder; onClose: () => voi
 export function KanbanPage() {
   const [mechanicId, setMechanicId] = useState<string>('')
   const [moving, setMoving] = useState<ServiceOrder | null>(null)
-  const [quoting, setQuoting] = useState<ServiceOrder | null>(null)
 
   const { data, isPending, isError, error } = useBoard(mechanicId || undefined)
   const { data: mechanics } = useMechanics()
@@ -211,6 +215,14 @@ export function KanbanPage() {
           </p>
         </div>
 
+        <div className="flex items-end gap-3">
+        <Link
+          to="/service-orders/new"
+          className="rounded bg-brand px-4 py-2 text-sm font-medium text-white"
+        >
+          Nova OS
+        </Link>
+
         <label className="text-sm">
           <span className="sr-only">Filtrar por mecânico</span>
           <select
@@ -226,6 +238,7 @@ export function KanbanPage() {
             ))}
           </select>
         </label>
+        </div>
       </div>
 
       {isError && (
@@ -254,12 +267,7 @@ export function KanbanPage() {
 
                   <ul className="mt-3 space-y-3">
                     {cards.map((order) => (
-                      <OrderCard
-                        key={order.id}
-                        order={order}
-                        onMove={setMoving}
-                        onQuote={setQuoting}
-                      />
+                      <OrderCard key={order.id} order={order} onMove={setMoving} />
                     ))}
                   </ul>
 
@@ -274,7 +282,6 @@ export function KanbanPage() {
       )}
 
       {moving && <MovePanel order={moving} onClose={() => setMoving(null)} />}
-      {quoting && <QuotePanel orderId={quoting.id} onClose={() => setQuoting(null)} />}
     </section>
   )
 }
