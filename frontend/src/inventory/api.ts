@@ -50,6 +50,27 @@ export function useParts(filters: PartFilters) {
   })
 }
 
+/** As peças ativas, para escolher ao lançar um item na OS. Lê tudo de uma vez
+ *  porque é um seletor: o backend limita a página a 100 (PagedResult.Clamp), e
+ *  uma oficina com mais peças que isso precisa de busca dentro do campo, não de
+ *  outra página. */
+export function usePartOptions() {
+  return useQuery({
+    queryKey: [...partsKey, 'options'],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/parts', {
+        params: { query: { includeInactive: false, page: 1, pageSize: 100 } },
+      })
+
+      if (error || !data) {
+        throw new Error(messageFrom(error, 'Não foi possível carregar as peças.'))
+      }
+
+      return data.items
+    },
+  })
+}
+
 export function usePart(id: string | undefined) {
   return useQuery({
     queryKey: [...partsKey, 'one', id],
