@@ -30,8 +30,12 @@ yarn-error.log*
 pnpm-debug.log*
 
 # ---------- Uploads e mídia local ----------
+# Onde o LocalDiskMediaStorage grava as fotos do laudo (D-25). O caminho é
+# completo de propósito: "storage/" casava com a pasta de código
+# SysPitstops.Api/Storage/ no Windows, que não diferencia maiúsculas, e os
+# arquivos do IMediaStorage sumiam do commit sem aviso.
+backend/src/SysPitstops.Api/media/
 uploads/
-storage/
 *.sqlite
 *.db
 
@@ -46,3 +50,4 @@ storage/
 .DS_Store
 Thumbs.db
 desktop.ini
+
