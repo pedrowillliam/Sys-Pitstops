@@ -10,6 +10,7 @@ import {
   type ServiceOrderStatus,
 } from './api'
 import { formatMoney, statusLabels } from './board'
+import { PhotosCard } from './PhotosCard'
 
 const statusDot: Partial<Record<ServiceOrderStatus, string>> = {
   IN_PROGRESS: 'bg-blue-500',
@@ -66,6 +67,7 @@ function OrderSheet({ id, onClose }: { id: string; onClose: () => void }) {
   }
 
   const text = diagnosis ?? order.diagnosis ?? ''
+  const isFinal = order.status === 'DELIVERED' || order.status === 'CANCELED'
   const services = order.items.filter((i) => i.itemType === 'SERVICE')
   const parts = order.items.filter((i) => i.itemType === 'PART')
 
@@ -159,8 +161,9 @@ function OrderSheet({ id, onClose }: { id: string; onClose: () => void }) {
             {saveDiagnosis.isPending ? 'Salvando…' : 'Salvar diagnóstico'}
           </button>
 
-          {/* O registro fotográfico do protótipo depende do IMediaStorage da
-              D-25, que entra na Semana 3 junto com o upload. */}
+          <div className="mt-4 border-t border-line pt-3">
+            <PhotosCard orderId={order.id} editable={!isFinal} />
+          </div>
         </section>
 
         {changeStatus.isError && (

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { QuoteCard } from '../quotes/QuoteCard'
 import { allowsItemChanges, formatDay, statusLabels } from './board'
 import { ItemsCard } from './ItemsCard'
+import { PhotosCard } from './PhotosCard'
 import { useMechanics, useOrder, useUpdateOrder, type ServiceOrderDetail } from './api'
 
 function Facts({ order }: { order: ServiceOrderDetail }) {
@@ -157,6 +158,10 @@ export function OrderDetailPage() {
               <p className="mt-1 text-sm text-ink-soft">{order.diagnosis}</p>
             </div>
           )}
+
+          <div className="mt-4 border-t border-line pt-3">
+            <PhotosCard orderId={order.id} editable={allowsItemChanges(order.status)} />
+          </div>
 
           <MechanicPicker order={order} />
         </div>
