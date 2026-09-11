@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatQuantity, usePartOptions } from '../inventory/api'
 import { formatMoney } from './board'
 import { useRemoveItem, useSaveItem, type ItemInput, type ServiceOrderItem } from './api'
 
@@ -11,8 +12,8 @@ const empty: ItemInput = {
 }
 
 /** Peça exige `partId` e serviço exige que ele seja nulo — a constraint
- *  ck_item_part_required cobra isso no banco. Enquanto não existe API de peças,
- *  a tela lança tudo como serviço com descrição livre. */
+ *  ck_item_part_required cobra isso no banco, e é o PART que a baixa da D-11
+ *  procura ao concluir a OS. Serviço continua com descrição livre. */
 function ItemForm({
   orderId,
   editing,
@@ -23,6 +24,7 @@ function ItemForm({
   onDone: () => void
 }) {
   const save = useSaveItem(orderId)
+  const { data: parts } = usePartOptions()
   const [form, setForm] = useState<ItemInput>(
     editing
       ? {
@@ -35,6 +37,25 @@ function ItemForm({
       : empty,
   )
 
+  /** Trocar o tipo limpa a peça: serviço com partId preenchido é recusado pelo
+   *  banco. O que já foi digitado fica, porque costuma servir nos dois. */
+  function chooseType(itemType: ItemInput['itemType']) {
+    setForm({ ...form, itemType, partId: null })
+  }
+
+  /** O cadastro preenche descrição e preço, mas os dois seguem editáveis: o
+   *  que for enviado é o que a OS mostra para sempre (D-07). */
+  function choosePart(partId: string) {
+    const part = parts?.find((option) => option.id === partId)
+
+    setForm({
+      ...form,
+      partId: partId || null,
+      description: part ? part.name : form.description,
+      unitPrice: part ? part.salePrice : form.unitPrice,
+    })
+  }
+
   function submit(event: React.FormEvent) {
     event.preventDefault()
     save.mutate({ ...form, itemId: editing?.id }, { onSuccess: onDone })
@@ -42,7 +63,46 @@ function ItemForm({
 
   return (
     <form onSubmit={submit} className="mt-3 rounded border border-line bg-surface p-3">
-      <div className="grid gap-3 sm:grid-cols-[1fr_6rem_8rem]">
+      <fieldset className="flex gap-4">
+        <legend className="sr-only">Tipo do item</legend>
+        {(['SERVICE', 'PART'] as const).map((type) => (
+          <label key={type} className="flex items-center gap-1.5 text-sm">
+            <input
+              type="radio"
+              name="itemType"
+              checked={form.itemType === type}
+              onChange={() => chooseType(type)}
+            />
+            {type === 'SERVICE' ? 'Serviço' : 'Peça'}
+          </label>
+        ))}
+      </fieldset>
+
+      {form.itemType === 'PART' && (
+        <label className="mt-3 block">
+          <span className="text-xs font-medium">Peça do estoque</span>
+          <select
+            required
+            value={form.partId ?? ''}
+            onChange={(event) => choosePart(event.target.value)}
+            className="mt-1 w-full rounded border border-line bg-panel px-2 py-1 text-sm"
+          >
+            <option value="">Selecione a peça</option>
+            {parts?.map((part) => (
+              <option key={part.id} value={part.id}>
+                {part.sku} · {part.name} ({formatQuantity(part.quantityOnHand)} {part.unit})
+              </option>
+            ))}
+          </select>
+          {/* D-11 e D-41: a baixa acontece ao concluir a OS, e o saldo pode
+              ficar negativo — por isso lançar mais do que há não é recusado. */}
+          <span className="mt-1 block text-xs text-ink-soft">
+            A baixa do estoque acontece quando a OS for concluída.
+          </span>
+        </label>
+      )}
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_6rem_8rem]">
         <label className="block">
           <span className="text-xs font-medium">Descrição</span>
           <input
