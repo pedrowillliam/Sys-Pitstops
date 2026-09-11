@@ -23,13 +23,12 @@ https://syspitstops.onrender.com.
 Veículos têm API e entram pelo cadastro do cliente, mas não têm tela própria: o
 protótipo não prevê uma.
 
-Em aberto, na ordem do cronograma: **upload de fotos no laudo** e **estoque com
-baixa automática** (Semana 3); depois dashboard, carga de dados e ajustes de PWA
-(Semana 4).
+Em aberto: dashboard, carga de dados e ajustes de PWA (Semana 4).
 
-Um ponto de extensão marcado no código espera a Semana 3: a transição para
-`READY` é onde a baixa de estoque da D-11 entra. A API de peças ainda não
-existe, e o `IMediaStorage` das fotos (D-25) também não.
+Uma dívida explícita, registrada na D-45: o `IMediaStorage` tem só a
+implementação em disco local, então **foto enviada em produção se perde no
+deploy seguinte**. A próxima entrega de fotos é a classe do Supabase que a D-26
+decidiu, mais o bucket criado no painel.
 
 ## Stack
 
@@ -131,6 +130,11 @@ esquerda. A paleta em `frontend/src/index.css` foi amostrada das telas do Figma
 — `#173676` no topo e no botão primário, `#0f2942` no rail e na faixa de
 título — e a fonte é Montserrat, como no desenho. Toda tela abre com
 `PageHeader`, que é a faixa escura do protótipo.
+
+As fotos do laudo entram por `IMediaStorage` (D-25): a rota
+`GET /api/service-orders/{id}/media/{mediaId}` serve os bytes, e o
+`storage_key` nunca sai do servidor (D-44). O navegador comprime antes de
+enviar.
 
 O protótipo traz campos que o modelo não tem — prioridade e tempo estimado
 foram deixados de fora (D-33 e D-34), o "Editar" da tela de orçamento não

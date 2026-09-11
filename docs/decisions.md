@@ -250,7 +250,7 @@ no cliente é o que torna o upload viável no pátio com sinal fraco.
 
 ## D-26 — Publicação no Render como serviço único; fotos no Supabase Storage
 **Data:** 2026-08-22
-*Revisa D-25*
+*Revisa D-25* · *Revisada por D-44*
 **Decisão:** a aplicação é publicada no Render como **um único serviço**, com o
 ASP.NET servindo a SPA já compilada, mais o Postgres gerenciado do Render. As
 fotos vão para o Supabase Storage pelo endpoint compatível com S3, em bucket
@@ -490,3 +490,36 @@ de um token roubado durar um turno inteiro. O (i) não tem destino. Mesmo
 critério do sino da D-42 — controle inerte ensina o usuário a ignorar a tela.
 "Mínimo 8 caracteres." permanece porque a regra existe: `UserContracts` exige
 `MinimumLength = 8`.
+
+## D-44 — A foto é servida por rota da API, não por link direto do storage
+**Data:** 2026-09-10
+*Revisa D-26*
+**Decisão:** a tela pede a imagem em
+`GET /api/service-orders/{id}/media/{mediaId}`. Em desenvolvimento a rota
+devolve os bytes do disco; quando o Supabase entrar, ela responde um redirect
+para a URL assinada. O `storage_key` nunca sai do servidor.
+**Alternativas:** a API devolver a URL assinada dentro do JSON da listagem,
+como a D-26 descreve, e a `<img>` apontar direto para o bucket.
+**Motivo:** a D-26 já queria o bucket privado com URL assinada, e isso continua
+valendo — o que muda é quem monta a URL. Devolvê-la no JSON obrigaria o front a
+saber que existe storage, e a listagem passaria a assinar URLs que talvez
+ninguém abra. Pior: URL assinada expira, então uma listagem aberta e deixada na
+tela mostraria imagens quebradas depois de alguns minutos. Com a rota, o front
+usa um endereço estável e a assinatura acontece no momento do acesso. A
+implementação de disco local também não teria o que assinar, e a interface da
+D-25 ficaria com um método que só um dos destinos sabe responder.
+
+## D-45 — Em produção as fotos só valem depois do Supabase configurado
+**Data:** 2026-09-10
+**Decisão:** o `IMediaStorage` registrado é o de disco local, inclusive em
+produção, até que a implementação do Supabase exista e o bucket esteja criado.
+Enquanto isso, foto enviada em produção **se perde no deploy seguinte**.
+**Alternativas:** segurar o merge até o Supabase estar pronto; ou desligar o
+upload em produção por configuração.
+**Motivo:** o disco do Render é efêmero, como a própria D-26 registra. Segurar
+o merge deixaria parada uma funcionalidade que já funciona em desenvolvimento e
+que a banca vai ver rodando local. Desligar por configuração custaria uma
+bandeira a mais para remover depois. Fica registrado como dívida explícita: a
+próxima entrega de fotos é a classe do Supabase, e só depois dela o upload em
+produção significa alguma coisa.
+
