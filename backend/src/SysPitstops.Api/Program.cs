@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -11,6 +11,7 @@ using SysPitstops.Api.Contracts;
 using SysPitstops.Api.Controllers;
 using SysPitstops.Api.Data;
 using SysPitstops.Api.Domain;
+using SysPitstops.Api.Storage;
 
 // The repository root .env is the single source of local configuration, as
 // documented in README.md. There is no .env in the published container — the
@@ -49,6 +50,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<TokenService>();
+
+// D-25: the upload talks to the interface, never to a folder. Swapping the
+// destination for the Supabase bucket of D-26 is a new class and this line.
+builder.Services.Configure<MediaOptions>(
+    builder.Configuration.GetSection(MediaOptions.SectionName));
+builder.Services.AddSingleton<IMediaStorage, LocalDiskMediaStorage>();
 
 var jwtSecret = builder.Configuration[$"{JwtOptions.SectionName}:Secret"];
 if (string.IsNullOrWhiteSpace(jwtSecret) || Encoding.UTF8.GetByteCount(jwtSecret) < 32)
