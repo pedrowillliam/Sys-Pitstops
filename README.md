@@ -109,6 +109,34 @@ consulta — ele não é aplicado manualmente.
 Em produção a migration é aplicada **na subida da aplicação** (D-28): não há
 passo manual no deploy.
 
+## Carga de demonstração
+
+O sistema sobe vazio: o seeder cria apenas a oficina e o administrador (D-22).
+Para desenvolver ou apresentar com o sistema parecendo em uso, ligue a carga:
+
+```bash
+SEED_DEMO=true SEED_DEMO_PASSWORD=demo1234 dotnet run --project src/SysPitstops.Api
+```
+
+Ela cria seis meses de oficina fictícia — clientes com veículos, mecânicos,
+peças com movimentação e ordens de serviço espalhadas pelos meses, com itens,
+histórico de transições, orçamentos e a baixa de estoque das que foram
+concluídas.
+
+**Roda uma vez só.** Se o banco já tiver algum cliente, é ignorada — as
+migrations rodam a cada subida (D-28), e sem essa checagem cada deploy
+empilharia outra oficina.
+
+Os usuários criados entram com `SEED_DEMO_PASSWORD` e e-mail derivado do nome
+(`roberto.silva@syspitstops.local`). Sem a variável, eles existem para serem
+atribuídos às OS, mas ninguém consegue entrar como eles.
+
+Para recomeçar do zero em desenvolvimento:
+
+```bash
+docker exec syspitstops-db psql -U syspitstops -d syspitstops   -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+```
+
 ## Publicação
 
 O sistema está no ar em **https://syspitstops.onrender.com**.

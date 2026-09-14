@@ -52,3 +52,12 @@ services:
         sync: false
       - key: SEED_ADMIN_PASSWORD
         sync: false
+
+      # Povoa o sistema com seis meses de oficina fictícia na primeira subida,
+      # para que o link não abra vazio na banca. Roda uma vez: se já existir
+      # cliente no banco, é ignorado. A senha é a dos usuários criados aqui —
+      # sem ela, eles existem para serem atribuídos mas ninguém entra.
+      - key: SEED_DEMO
+        value: 'true'
+      - key: SEED_DEMO_PASSWORD
+        sync: false

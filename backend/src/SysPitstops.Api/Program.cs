@@ -11,6 +11,7 @@ using SysPitstops.Api.Contracts;
 using SysPitstops.Api.Controllers;
 using SysPitstops.Api.Data;
 using SysPitstops.Api.Domain;
+using SysPitstops.Api.Seeding;
 using SysPitstops.Api.Storage;
 
 // The repository root .env is the single source of local configuration, as
@@ -177,6 +178,7 @@ await using (var scope = app.Services.CreateAsyncScope())
 }
 
 await AdminSeeder.SeedAsync(app.Services);
+await DemoSeeder.SeedAsync(app.Services);
 
 // The generated OpenAPI document is the API contract (see docs/decisions.md, D-17).
 if (app.Environment.IsDevelopment())
