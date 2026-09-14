@@ -523,3 +523,39 @@ bandeira a mais para remover depois. Fica registrado como dívida explícita: a
 próxima entrega de fotos é a classe do Supabase, e só depois dela o upload em
 produção significa alguma coisa.
 
+## D-46 — A carga de demonstração vai para produção, atrás de uma variável
+**Data:** 2026-09-14
+**Decisão:** `SEED_DEMO` liga uma carga de seis meses de oficina fictícia,
+executada na subida da aplicação e **apenas** quando não existe nenhum cliente
+no banco. Em produção ela fica ligada.
+**Alternativas:** carga só em desenvolvimento, com a produção limpa; ou um
+endpoint administrativo para disparar a carga quando quisessem.
+**Motivo:** o sistema publicado abria vazio, e um quadro sem cartão é
+indistinguível de um quadro quebrado para quem vê pela primeira vez. Pior no
+dashboard: o gráfico de faturamento dos últimos seis meses desenharia seis
+colunas zeradas, e ninguém saberia dizer se está certo. A banca acessa pelo
+link, de onde estiver, e não é razoável pedir que a equipe cadastre uma oficina
+ao vivo antes de mostrar qualquer coisa.
+
+A guarda é a ausência de clientes, e não uma marca própria, porque as migrations
+rodam a cada subida (D-28) — sem ela, cada deploy empilharia outra oficina.
+
+O risco aceito é conhecido: se este sistema um dia atender uma oficina real, os
+dados falsos estarão misturados aos verdadeiros. A equipe decidiu que isso não
+acontecerá, e o custo de desligar depois é apagar uma variável.
+
+## D-47 — O dashboard corta a nota de qualidade e a especialidade do mecânico
+**Data:** 2026-09-14
+**Decisão:** o ranking de "Produtividade dos Mecânicos" mostra apenas OS
+concluídas no período. Saem a porcentagem de qualidade (98%, 92%…), a
+especialidade sob o nome ("Injeção Eletrônica") e a foto.
+**Alternativas:** criar avaliação de serviço e especialidade em `users`; ou
+desenhar os três com valores fixos.
+**Motivo:** não existe avaliação, nota, pesquisa de satisfação nem tabela de
+retrabalho em lugar nenhum do modelo — a porcentagem não teria de onde sair, e
+um número inventado num ranking de pessoas é pior que a ausência dele, porque
+alguém decide coisa a partir dele. Especialidade exigiria coluna e uma tela de
+cadastro que a D-01 não lista. A foto não tem coluna; as iniciais resolvem, como
+na tela de Clientes. OS concluídas sai de `status_history`, que já existe.
+Mesma linha da D-33, D-34 e D-37.
+
