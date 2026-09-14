@@ -10,25 +10,45 @@ Projeto acadêmico (UFAPE, 2026.1), 3 pessoas, prazo curto. O MVP cobre o ciclo
 completo da Ordem de Serviço (OS): entrada do veículo → orçamento → execução →
 entrega.
 
-**Estado em 2026-09-09:** Semanas 1 e 2 concluídas; Semana 3 em andamento.
+**Estado em 2026-09-14:** Semanas 1, 2 e 3 concluídas; Semana 4 em andamento.
 
 Prontos: schema e migrations, autenticação (JWT em cookie httpOnly), CRUD de
 clientes e veículos com tela de clientes, endpoint mínimo de usuários, **a Ordem
 de Serviço de ponta a ponta** — abertura, detalhe, itens com preço congelado,
 transições com histórico, painel Kanban e fila do mecânico —, **o orçamento
 completo** (geração a partir da OS, link público de aprovação e tela de
-acompanhamento), CI no GitHub Actions e o sistema **publicado e no ar** em
-https://syspitstops.onrender.com.
+acompanhamento), **o estoque** (peças, movimentações e baixa automática na
+conclusão), **as fotos do laudo**, a **carga de demonstração**, CI no GitHub
+Actions e o sistema **publicado e no ar** em https://syspitstops.onrender.com.
 
 Veículos têm API e entram pelo cadastro do cliente, mas não têm tela própria: o
 protótipo não prevê uma.
 
-Em aberto: dashboard, carga de dados e ajustes de PWA (Semana 4).
+Em aberto, para fechar a Semana 4: **dashboard** e **ajustes de PWA** — o
+`theme_color` do manifest ficou na paleta antiga, de antes da conversão do
+shell. Os KPIs do dashboard estão na §6 do `data-model.md` e nenhum exige tabela
+nova; a D-47 corta do protótipo a nota de qualidade e a especialidade do
+mecânico, que não têm origem no modelo.
 
 Uma dívida explícita, registrada na D-45: o `IMediaStorage` tem só a
 implementação em disco local, então **foto enviada em produção se perde no
 deploy seguinte**. A próxima entrega de fotos é a classe do Supabase que a D-26
 decidiu, mais o bucket criado no painel.
+
+## Rodar com o sistema povoado
+
+Um banco vazio abre sem nada, e um quadro sem cartão se lê como defeito. A carga
+da D-46 cria seis meses de oficina fictícia:
+
+```bash
+SEED_DEMO=true SEED_DEMO_PASSWORD=demo1234 dotnet run --project src/SysPitstops.Api
+```
+
+Roda uma vez, e só quando o banco não tem nenhum cliente — as migrations rodam a
+cada subida (D-28), então sem essa guarda cada deploy empilharia outra oficina.
+Os logins saem do nome: `roberto.silva@syspitstops.local` (mecânico),
+`ana.lima@syspitstops.local` (atendente). O README traz o comando para
+recomeçar do zero.
 
 ## Stack
 
@@ -120,7 +140,8 @@ Estão implementadas: **Clientes** (`frontend/src/customers/`), **Kanban**,
 **abertura e detalhe da OS** e **Minha fila** (`frontend/src/service-orders/`),
 **Orçamento** mais a página pública de aprovação (`frontend/src/quotes/`) e
 **Estoque** (`frontend/src/inventory/`). Faltam **Dashboard**, **Mecânicos** e
-**Configurações**, ainda placeholder (`frontend/src/pages/Placeholder.tsx`). O
+**Configurações**, ainda placeholder (`frontend/src/pages/Placeholder.tsx`) —
+o menu chama a tela de clientes de "Clientes Inscritos", como o protótipo. O
 menu e os papéis que enxergam cada item estão em
 `frontend/src/layout/navigation.ts`, com a flag `ready` marcando o que já existe.
 
