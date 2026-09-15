@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -191,6 +191,31 @@ internal static class TestApi
         db.SaveChanges();
 
         return item;
+    }
+
+    /// <summary>A transition as the controller would have written it. The
+    /// execution time KPI reads these rows and nothing else.</summary>
+    public static ServiceOrderStatusHistory AddHistory(
+        this AppDbContext db,
+        ServiceOrder order,
+        ServiceOrderStatus toStatus,
+        DateTimeOffset changedAt,
+        ServiceOrderStatus? fromStatus = null)
+    {
+        var entry = new ServiceOrderStatusHistory
+        {
+            Id = Guid.NewGuid(),
+            ServiceOrderId = order.Id,
+            FromStatus = fromStatus,
+            ToStatus = toStatus,
+            ChangedBy = order.CreatedBy,
+            ChangedAt = changedAt
+        };
+
+        db.ServiceOrderStatusHistory.Add(entry);
+        db.SaveChanges();
+
+        return entry;
     }
 
     public static TController AsUser<TController>(
