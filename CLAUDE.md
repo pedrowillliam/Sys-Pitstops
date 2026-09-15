@@ -18,17 +18,19 @@ de Serviço de ponta a ponta** — abertura, detalhe, itens com preço congelado
 transições com histórico, painel Kanban e fila do mecânico —, **o orçamento
 completo** (geração a partir da OS, link público de aprovação e tela de
 acompanhamento), **o estoque** (peças, movimentações e baixa automática na
-conclusão), **as fotos do laudo**, a **carga de demonstração**, CI no GitHub
-Actions e o sistema **publicado e no ar** em https://syspitstops.onrender.com.
+conclusão), **as fotos do laudo**, a **carga de demonstração**, **o dashboard**,
+**a tela de mecânicos** (carga de cada um calculada no servidor, D-48), CI no
+GitHub Actions e o sistema **publicado e no ar** em
+https://syspitstops.onrender.com.
 
 Veículos têm API e entram pelo cadastro do cliente, mas não têm tela própria: o
 protótipo não prevê uma.
 
-Em aberto, para fechar a Semana 4: **dashboard** e **ajustes de PWA** — o
-`theme_color` do manifest ficou na paleta antiga, de antes da conversão do
-shell. Os KPIs do dashboard estão na §6 do `data-model.md` e nenhum exige tabela
-nova; a D-47 corta do protótipo a nota de qualidade e a especialidade do
-mecânico, que não têm origem no modelo.
+Em aberto, para fechar a Semana 4: **ajustes de PWA** e a tela de
+**Configurações**, ainda placeholder porque não há decisão sobre o que é
+configurável. Os KPIs do dashboard estão na §6 do `data-model.md` e nenhum
+exige tabela nova; a D-47 corta do protótipo a nota de qualidade e a
+especialidade do mecânico, que não têm origem no modelo.
 
 Uma dívida explícita, registrada na D-45: o `IMediaStorage` tem só a
 implementação em disco local, então **foto enviada em produção se perde no
@@ -138,8 +140,9 @@ startup da aplicação (D-28). `Dockerfile` e `render.yaml` ficam na raiz.
 Telas no Figma (arquivo "Sys-PitStop", fileKey `jGZ6p2AhbpQAVcy7wV6K9o`).
 Estão implementadas: **Clientes** (`frontend/src/customers/`), **Kanban**,
 **abertura e detalhe da OS** e **Minha fila** (`frontend/src/service-orders/`),
-**Orçamento** mais a página pública de aprovação (`frontend/src/quotes/`) e
-**Estoque** (`frontend/src/inventory/`). Faltam **Dashboard**, **Mecânicos** e
+**Orçamento** mais a página pública de aprovação (`frontend/src/quotes/`),
+**Estoque** (`frontend/src/inventory/`), **Dashboard** (`frontend/src/dashboard/`)
+e **Mecânicos** com o cadastro de funcionário (`frontend/src/mechanics/`). Falta
 **Configurações**, ainda placeholder (`frontend/src/pages/Placeholder.tsx`) —
 o menu chama a tela de clientes de "Clientes Inscritos", como o protótipo. O
 menu e os papéis que enxergam cada item estão em
