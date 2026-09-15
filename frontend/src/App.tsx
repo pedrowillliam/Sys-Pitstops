@@ -8,6 +8,8 @@ import { DashboardPage } from './dashboard/DashboardPage'
 import { CustomerFormPage } from './customers/CustomerFormPage'
 import { CustomersPage } from './customers/CustomersPage'
 import { InventoryPage } from './inventory/InventoryPage'
+import { MechanicsPage } from './mechanics/MechanicsPage'
+import { UserFormPage } from './mechanics/UserFormPage'
 import { PartFormPage } from './inventory/PartFormPage'
 import { KanbanPage } from './service-orders/KanbanPage'
 import { OpenOrderPage } from './service-orders/OpenOrderPage'
@@ -75,7 +77,16 @@ const router = createBrowserRouter([
         path: 'mechanics',
         element: (
           <RequireRole allowed={desk}>
-            <Placeholder title="Mecânicos" waitingFor="a tela de cadastro e desempenho" />
+            <MechanicsPage />
+          </RequireRole>
+        ),
+      },
+      // Só o administrador cria usuário (POST /api/users); a rota espelha isso.
+      {
+        path: 'mechanics/new',
+        element: (
+          <RequireRole allowed={['ADMIN']}>
+            <UserFormPage />
           </RequireRole>
         ),
       },

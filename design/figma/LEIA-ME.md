@@ -125,8 +125,11 @@ Anotado ao ler as telas. A maior parte já virou decisão registrada em
   separada. A rota `/vehicles` existe porque a API existe, mas fica fora do
   menu de propósito.
 - **"Mecânicos" é uma seção de gestão de pessoas**, que a D-01 não lista no
-  escopo do MVP e para a qual não há tabela além de `users`. **Em aberto** — a
-  tela segue placeholder e precisa de decisão antes de virar código.
+  escopo do MVP e para a qual não há tabela além de `users`. **Resolvido pela
+  D-48** — a tela lista os usuários com papel de mecânico, o servidor calcula
+  ocupado/próximo/fila a partir das OS (`GET /api/mechanics`), e o "Cadastro de
+  Funcionário" fica reduzido a nome, e-mail, cargo e senha. Implementado em
+  `frontend/src/mechanics/`.
 - **O mecânico não tem tela de desktop.** As quatro telas dele são mobile
   (440×956), o que combina com trabalhar no pátio pelo celular.
   **Implementado** como `/my-queue`, para onde ele cai ao entrar.

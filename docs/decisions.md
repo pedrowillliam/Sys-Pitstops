@@ -559,3 +559,28 @@ cadastro que a D-01 não lista. A foto não tem coluna; as iniciais resolvem, co
 na tela de Clientes. OS concluídas sai de `status_history`, que já existe.
 Mesma linha da D-33, D-34 e D-37.
 
+
+## D-48 — A tela de Mecânicos lê `users` e a fila sai das OS; o cadastro é o de usuário
+**Data:** 2026-09-14
+**Decisão:** não há tabela de mecânicos. A tela lista os usuários ativos com
+papel `MECHANIC` e, para cada um, `GET /api/mechanics` calcula no servidor o
+que o protótipo desenha no cartão: **ocupado** quando há OS dele em `IN_YARD` ou
+`IN_PROGRESS` (a primeira delas é o carro em mãos), **próximo** e **fila** a
+partir das demais OS atribuídas e não encerradas, servidas na ordem do fluxo —
+execução, análise, no pátio, aguardando o cliente, marcada — e, entre iguais,
+a mais antiga. `READY`, `DELIVERED` e `CANCELED` saem das mãos do mecânico. O
+"+ Adicionar" abre o "Cadastro de Funcionário" reduzido ao que `users` guarda:
+nome, e-mail, cargo e a senha inicial. Saem CPF, telefone, data de admissão,
+salário, especialidades e foto. A etiqueta da fila diz "N carros", não "N
+Carros Aprovados".
+**Alternativas:** calcular ocupado/próximo/fila no navegador a partir da lista
+do Kanban; criar tabela `mechanics` com os campos do protótipo; manter a tela
+como placeholder.
+**Motivo:** a regra de "quem está livre" mora em um lugar só e com teste — se
+cada tela deduzisse do jeito dela, o cartão e o quadro discordariam. Uma tabela
+própria exigiria RH, que a D-01 tira do MVP; a D-47 já cortou especialidade e
+foto pelo mesmo motivo, e as iniciais resolvem como em Clientes. "Aprovados"
+não é uma situação desde a D-35 — a OS aprovada já está em execução — então a
+fila conta carros, sem qualificar. A senha entra porque sem ela não há primeiro
+acesso; quem cria usuário é o administrador, como `POST /api/users` já exigia,
+e por isso o atendente vê os cartões mas não o "+ Adicionar".
