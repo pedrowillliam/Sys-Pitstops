@@ -584,3 +584,41 @@ não é uma situação desde a D-35 — a OS aprovada já está em execução �
 fila conta carros, sem qualificar. A senha entra porque sem ela não há primeiro
 acesso; quem cria usuário é o administrador, como `POST /api/users` já exigia,
 e por isso o atendente vê os cartões mas não o "+ Adicionar".
+
+## D-49 — Configurações guarda os dados da oficina e a troca de senha
+**Data:** 2026-09-15
+**Decisão:** a tela `/settings` tem duas seções: **dados da oficina** (nome,
+CPF/CNPJ, telefone e endereço), que só o administrador edita e os demais leem, e
+**minha senha**, aberta a qualquer papel. O item do menu deixa de ser exclusivo
+do administrador.
+**Alternativas:** deixar a tela como placeholder até alguém pedir algo
+configurável; ou encher de preferências que o sistema não lê.
+**Motivo:** é a única tela do menu que o Figma não desenha — a engrenagem existe
+na barra lateral e não há frame atrás dela —, então o conteúdo não vinha do
+protótipo e precisava sair de algo real. Duas coisas estavam quebradas:
+
+O **nome da oficina** era o que o seeder escreveu e só mudava no banco. Ele não é
+decorativo: é o que o cliente lê no topo de todo link público de orçamento. Até
+aqui, quem recebia um orçamento via "Oficina Piloto".
+
+A **troca de senha** não existia, embora o README mande trocar a do primeiro
+admin no primeiro acesso (D-22). A documentação instruía a fazer algo que o
+sistema não permitia.
+
+A senha atual é exigida mesmo havendo cookie válido: o cookie prova que aquele
+navegador entrou uma vez, não que quem está digitando agora é o dono da conta —
+uma máquina destravada bastaria. A sessão **não** é encerrada na troca, porque o
+cookie da D-20 não carrega senha e o token não tem refresh a revogar (D-19);
+desconectar puniria quem fez a coisa certa.
+
+CPF/CNPJ, telefone e endereço são gravados sem ter leitor hoje. Diferente do
+sino da D-42, não são controle inerte: são dados de cadastro que quem digita vê
+guardados, e ficam prontos para quando o orçamento ganhar cabeçalho da oficina.
+
+**Consequência na mensagem do WhatsApp.** Com o nome cadastrável, a mensagem
+da D-15 deixa de dizer "aqui é da oficina" e passa a nomeá-la — é o primeiro
+contato, e é o que dá legitimidade a um link que chega com um token estranho na
+URL. O prazo, que estava escrito à mão como "7 dias", passa a sair do
+`expires_at` do próprio orçamento: os dois batiam por coincidência, e os
+orçamentos da carga de demonstração, com 30 dias, já desmentiam o texto.
+

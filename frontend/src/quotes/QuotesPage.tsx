@@ -2,6 +2,7 @@ import { PageHeader } from '../layout/PageHeader'
 import { useState } from 'react'
 import { pageSize, useQuotes, type Quote, type QuoteStatus } from './api'
 import { money } from './publicApi'
+import { useWorkshop } from '../settings/api'
 import { hasWhatsApp, isLocalOrigin, publicQuoteUrl, whatsAppLink } from './whatsapp'
 
 const filters: { key: QuoteStatus | 'ALL'; label: string }[] = [
@@ -31,7 +32,7 @@ function ago(iso: string): string {
   return minutes < 1440 ? `${Math.floor(minutes / 60)}h` : `${Math.floor(minutes / 1440)}d`
 }
 
-function QuoteRow({ quote }: { quote: Quote }) {
+function QuoteRow({ quote, workshopName }: { quote: Quote; workshopName: string }) {
   const [copied, setCopied] = useState(false)
   const badge = badges[quote.status]
 
@@ -74,7 +75,7 @@ function QuoteRow({ quote }: { quote: Quote }) {
         {quote.status === 'SENT' &&
           (hasWhatsApp(quote.customerPhone) ? (
             <a
-              href={whatsAppLink(quote)}
+              href={whatsAppLink({ ...quote, workshopName })}
               target="_blank"
               rel="noreferrer"
               className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white"
@@ -96,7 +97,11 @@ export function QuotesPage() {
   const [page, setPage] = useState(1)
 
   const { data, isPending, isError, error } = useQuotes(status, page)
+  // Uma consulta só para a tela inteira, em cache: o nome é o mesmo em todas
+  // as linhas, e não precisa viajar repetido dentro de cada orçamento.
+  const { data: workshop } = useWorkshop()
   const quotes = data?.items ?? []
+  const workshopName = workshop?.name ?? 'oficina'
   const lastPage = Math.max(1, Math.ceil((data?.total ?? 0) / pageSize))
 
   function filterBy(key: QuoteStatus | 'ALL') {
@@ -154,7 +159,7 @@ export function QuotesPage() {
         ) : (
           <ul className="mt-4 space-y-3">
             {quotes.map((quote) => (
-              <QuoteRow key={quote.id} quote={quote} />
+              <QuoteRow key={quote.id} quote={quote} workshopName={workshopName} />
             ))}
           </ul>
         )}

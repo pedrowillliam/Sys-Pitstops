@@ -1,6 +1,7 @@
 import type { ServiceOrderDetail } from '../service-orders/api'
 import { useOrderQuotes, useSendQuote, type OrderQuote } from './api'
 import { money } from './publicApi'
+import { useWorkshop } from '../settings/api'
 import { hasWhatsApp, isLocalOrigin, publicQuoteUrl, whatsAppLink } from './whatsapp'
 
 const statusLabels: Record<OrderQuote['status'], string> = {
@@ -13,6 +14,7 @@ const statusLabels: Record<OrderQuote['status'], string> = {
 /** O orçamento nasce da OS, ao lado dos itens que o compõem (D-36). */
 export function QuoteCard({ order }: { order: ServiceOrderDetail }) {
   const { data: quotes, isPending } = useOrderQuotes(order.id)
+  const { data: workshop } = useWorkshop()
   const send = useSendQuote()
 
   const live = quotes?.find((quote) => quote.status === 'SENT')
@@ -21,6 +23,8 @@ export function QuoteCard({ order }: { order: ServiceOrderDetail }) {
 
   function linkFor(quote: OrderQuote): string {
     return whatsAppLink({
+      workshopName: workshop?.name ?? 'oficina',
+      expiresAt: quote.expiresAt,
       customerName: order.customerName,
       customerPhone: order.customerPhone,
       serviceOrderNumber: order.number,
