@@ -7,16 +7,9 @@ import {
   useOrder,
   useSaveDiagnosis,
   type ServiceOrder,
-  type ServiceOrderStatus,
 } from './api'
-import { formatMoney, statusLabels } from './board'
+import { formatMoney, statusLabels, statusTone } from './board'
 import { PhotosCard } from './PhotosCard'
-
-const statusDot: Partial<Record<ServiceOrderStatus, string>> = {
-  IN_PROGRESS: 'bg-blue-500',
-  READY: 'bg-emerald-500',
-  AWAITING_APPROVAL: 'bg-amber-500',
-}
 
 function QueueCard({ order, onOpen }: { order: ServiceOrder; onOpen: (id: string) => void }) {
   return (
@@ -28,7 +21,7 @@ function QueueCard({ order, onOpen }: { order: ServiceOrder; onOpen: (id: string
         <span className="flex items-center gap-1.5 text-xs text-ink-soft">
           <span
             aria-hidden="true"
-            className={`size-2 rounded-full ${statusDot[order.status] ?? 'bg-slate-400'}`}
+            className={`size-2 rounded-full ${statusTone[order.status].dot}`}
           />
           {statusLabels[order.status]}
         </span>
