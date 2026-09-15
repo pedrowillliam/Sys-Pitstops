@@ -433,6 +433,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/mechanics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["MechanicWorkload"][];
+                        "application/json": components["schemas"]["MechanicWorkload"][];
+                        "text/json": components["schemas"]["MechanicWorkload"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/parts": {
         parameters: {
             query?: never;
@@ -2406,6 +2443,16 @@ export interface components {
             /** Format: double */
             revenue: number;
         };
+        MechanicWorkload: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            isBusy: boolean;
+            current?: components["schemas"]["QueuedOrder"];
+            next?: components["schemas"]["QueuedOrder"];
+            /** Format: int32 */
+            queueSize: number;
+        };
         MonthlyMetric: {
             /** Format: double */
             current: number;
@@ -2507,6 +2554,15 @@ export interface components {
             sentAt: string;
             /** Format: date-time */
             expiresAt: string;
+        };
+        QueuedOrder: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            number: number;
+            status: components["schemas"]["ServiceOrderStatus"];
+            vehiclePlate: string;
+            vehicleDescription: string;
         };
         QuoteItemSnapshot: {
             itemType: components["schemas"]["ItemType"];
