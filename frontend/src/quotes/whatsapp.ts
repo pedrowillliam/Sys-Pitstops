@@ -12,21 +12,36 @@ export function publicQuoteUrl(token: string): string {
   return `${window.location.origin}/q/${token}`
 }
 
+/**
+ * A mensagem que o cliente recebe.
+ *
+ * O nome da oficina vem do cadastro (D-49) em vez de um "aqui é da oficina"
+ * genérico: é o primeiro contato, e é ele que dá legitimidade a um link que
+ * chega pelo WhatsApp com um token estranho na URL. O mesmo nome aparece no
+ * topo da página que o cliente abre em seguida.
+ *
+ * O prazo sai do `expiresAt` do próprio orçamento. Estava escrito à mão como
+ * "7 dias", enquanto o valor real vinha da constante do QuotesController —
+ * batiam por coincidência, e mudar a constante faria a mensagem mentir.
+ */
 export function quoteMessage(quote: {
+  workshopName: string
   customerName: string
   serviceOrderNumber: number
   vehicleDescription: string
   vehiclePlate: string
   totalAmount: number
   publicToken: string
+  expiresAt: string
 }): string {
   const firstName = quote.customerName.trim().split(/\s+/)[0]
+  const until = new Date(quote.expiresAt).toLocaleDateString('pt-BR')
 
   return [
-    `Olá, ${firstName}! Aqui é da oficina.`,
+    `Olá, ${firstName}! Aqui é da ${quote.workshopName}.`,
     `O orçamento da OS-${quote.serviceOrderNumber} (${quote.vehicleDescription} · ${quote.vehiclePlate}) ficou em ${money(quote.totalAmount)}.`,
     `Você pode aprovar ou recusar por este link: ${publicQuoteUrl(quote.publicToken)}`,
-    'O link vale por 7 dias.',
+    `O link vale até ${until}.`,
   ].join('\n\n')
 }
 
