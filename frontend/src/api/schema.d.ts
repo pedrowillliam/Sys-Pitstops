@@ -396,6 +396,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["DashboardResponse"];
+                        "application/json": components["schemas"]["DashboardResponse"];
+                        "text/json": components["schemas"]["DashboardResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/parts": {
         parameters: {
             query?: never;
@@ -2339,11 +2376,51 @@ export interface components {
             /** Format: int32 */
             modelYear?: number | null;
         };
+        DashboardResponse: {
+            byStatus: components["schemas"]["StatusCount"][];
+            revenue: components["schemas"]["MonthlyMetric"];
+            averageTicket: components["schemas"]["MonthlyMetric"];
+            customersServed: components["schemas"]["MonthlyMetric"];
+            openedOrders: components["schemas"]["MonthlyMetric"];
+            revenueHistory: components["schemas"]["MonthlyRevenue"][];
+            mechanics: components["schemas"]["MechanicProductivity"][];
+            topServices: components["schemas"]["TopService"][];
+            /** Format: double */
+            averageExecutionHours?: number | null;
+            /** Format: int32 */
+            partsBelowMinimum: number;
+            recent: components["schemas"]["RecentOrder"][];
+        };
         /** @enum {string} */
         ItemType: "SERVICE" | "PART";
         LoginRequest: {
             email: string;
             password: string;
+        };
+        MechanicProductivity: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            closedOrders: number;
+            /** Format: double */
+            revenue: number;
+        };
+        MonthlyMetric: {
+            /** Format: double */
+            current: number;
+            /** Format: double */
+            previous: number;
+            /** Format: double */
+            changePercent?: number | null;
+        };
+        MonthlyRevenue: {
+            /** Format: int32 */
+            year: number;
+            /** Format: int32 */
+            month: number;
+            /** Format: double */
+            total: number;
         };
         /** @enum {string} */
         MovementType: "IN" | "OUT" | "ADJUSTMENT";
@@ -2497,6 +2574,21 @@ export interface components {
         };
         /** @enum {string} */
         QuoteStatus: "SENT" | "APPROVED" | "REJECTED" | "EXPIRED";
+        RecentOrder: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            number: number;
+            status: components["schemas"]["ServiceOrderStatus"];
+            customerName: string;
+            vehicleDescription: string;
+            vehiclePlate: string;
+            mechanicName?: string | null;
+            /** Format: double */
+            total: number;
+            /** Format: date-time */
+            openedAt: string;
+        };
         RejectQuoteRequest: {
             reason?: string | null;
         };
@@ -2623,6 +2715,11 @@ export interface components {
             /** Format: int32 */
             total: number;
         };
+        StatusCount: {
+            status: components["schemas"]["ServiceOrderStatus"];
+            /** Format: int32 */
+            count: number;
+        };
         StockMovementRequest: {
             movementType: components["schemas"]["MovementType"];
             /** Format: double */
@@ -2660,6 +2757,13 @@ export interface components {
             pageSize: number;
             /** Format: int32 */
             total: number;
+        };
+        TopService: {
+            description: string;
+            /** Format: int32 */
+            times: number;
+            /** Format: double */
+            revenue: number;
         };
         UpdateDiagnosisRequest: {
             diagnosis?: string | null;
