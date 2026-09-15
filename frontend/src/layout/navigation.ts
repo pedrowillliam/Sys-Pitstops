@@ -22,7 +22,7 @@ export const navigation: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: 'dashboard', roles: ['ADMIN'], ready: true },
   { to: '/service-orders', label: 'Kanban', icon: 'board', roles: [], ready: true },
   { to: '/my-queue', label: 'Minha fila', icon: 'clipboard', roles: ['MECHANIC'], ready: true },
-  { to: '/mechanics', label: 'Mecânicos', icon: 'wrench', roles: ['ADMIN', 'ATTENDANT'], ready: false },
+  { to: '/mechanics', label: 'Mecânicos', icon: 'wrench', roles: ['ADMIN', 'ATTENDANT'], ready: true },
   {
     to: '/customers',
     label: 'Clientes Inscritos',
