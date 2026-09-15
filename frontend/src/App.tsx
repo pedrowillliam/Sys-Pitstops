@@ -4,6 +4,7 @@ import { PublicQuotePage } from './quotes/PublicQuotePage'
 import { QuotesPage } from './quotes/QuotesPage'
 import { RequireAuth, RequireRole } from './auth/RequireAuth'
 import { useSession } from './auth/session'
+import { DashboardPage } from './dashboard/DashboardPage'
 import { CustomerFormPage } from './customers/CustomerFormPage'
 import { CustomersPage } from './customers/CustomersPage'
 import { InventoryPage } from './inventory/InventoryPage'
@@ -41,7 +42,7 @@ const router = createBrowserRouter([
         path: 'dashboard',
         element: (
           <RequireRole allowed={['ADMIN']}>
-            <Placeholder title="Dashboard" waitingFor="os KPIs do §6 do data-model" />
+            <DashboardPage />
           </RequireRole>
         ),
       },

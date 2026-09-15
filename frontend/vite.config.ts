@@ -18,8 +18,11 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         display: 'standalone',
-        background_color: '#0b1220',
-        theme_color: '#0b1220',
+        // A mesma paleta de index.css: #0f2942 é o rail e a faixa de título,
+        // que é o que o sistema pinta ao redor do app instalado. Ficaram para
+        // trás quando o shell foi convertido ao protótipo.
+        background_color: '#0f2942',
+        theme_color: '#0f2942',
         icons: [
           { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
