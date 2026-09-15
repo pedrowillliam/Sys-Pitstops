@@ -36,8 +36,11 @@ export const navigation: NavItem[] = [
     to: '/settings',
     label: 'Configurações',
     icon: 'gear',
-    roles: ['ADMIN'],
-    ready: false,
+    // Aberto a todos: quem só é mecânico não edita a oficina, mas troca a
+    // própria senha. O protótipo desenha a engrenagem na barra do admin porque
+    // é a tela dele que está desenhada, não porque a senha seja dele.
+    roles: [],
+    ready: true,
     atFoot: true,
   },
 ]

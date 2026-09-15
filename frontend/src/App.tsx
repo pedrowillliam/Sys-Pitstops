@@ -5,6 +5,7 @@ import { QuotesPage } from './quotes/QuotesPage'
 import { RequireAuth, RequireRole } from './auth/RequireAuth'
 import { useSession } from './auth/session'
 import { DashboardPage } from './dashboard/DashboardPage'
+import { SettingsPage } from './settings/SettingsPage'
 import { CustomerFormPage } from './customers/CustomerFormPage'
 import { CustomersPage } from './customers/CustomersPage'
 import { InventoryPage } from './inventory/InventoryPage'
@@ -161,11 +162,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'settings',
-        element: (
-          <RequireRole allowed={['ADMIN']}>
-            <Placeholder title="Configurações" waitingFor="a definição do que é configurável" />
-          </RequireRole>
-        ),
+        element: <SettingsPage />,
       },
       { path: '*', element: <NotFound /> },
     ],
