@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useCustomer, useSaveCustomer, type CustomerInput } from './api'
 import { formatPhone, onlyDigits, toPhoneDigits } from './phone'
+import { DraftVehicles, VehiclesCard, type DraftVehicle } from './VehiclesCard'
+import { useSaveVehicle } from './vehicles'
 
 const empty: CustomerInput = { name: '', phone: '', document: '', email: '', notes: '' }
 
@@ -71,7 +73,12 @@ export function CustomerFormPage() {
 function CustomerForm({ id, initial }: { id?: string; initial: CustomerInput }) {
   const navigate = useNavigate()
   const save = useSaveCustomer(id)
+  const saveVehicle = useSaveVehicle(id ?? '')
   const [form, setForm] = useState(initial)
+  // Em cliente novo os veículos esperam em memória: o veículo exige um dono, e
+  // o dono só passa a existir depois do primeiro gravar.
+  const [drafts, setDrafts] = useState<DraftVehicle[]>([])
+  const [failed, setFailed] = useState<string | null>(null)
 
   // Empty optional fields go as null, not "": the column is nullable and an
   // empty string would make "has no document" look like "has a blank one".
@@ -85,7 +92,29 @@ function CustomerForm({ id, initial }: { id?: string; initial: CustomerInput }) 
         email: form.email?.trim() || null,
         notes: form.notes?.trim() || null,
       },
-      { onSuccess: () => navigate('/customers') },
+      {
+        onSuccess: async (saved) => {
+          if (id) {
+            navigate('/customers')
+            return
+          }
+
+          // O cliente já está gravado; se um carro falhar, levar de volta para
+          // a lista esconderia o problema e criaria um cliente duplicado na
+          // próxima tentativa. A ficha dele é onde dá para corrigir.
+          for (const vehicle of drafts) {
+            try {
+              await saveVehicle.mutateAsync({ ...vehicle, ownerId: saved.id })
+            } catch (error) {
+              setFailed((error as Error).message)
+              navigate(`/customers/${saved.id}`)
+              return
+            }
+          }
+
+          navigate('/customers')
+        },
+      },
     )
   }
 
@@ -140,6 +169,12 @@ function CustomerForm({ id, initial }: { id?: string; initial: CustomerInput }) 
           />
         </label>
 
+        {!id && (
+          <div className="pt-2">
+            <DraftVehicles vehicles={drafts} onChange={setDrafts} />
+          </div>
+        )}
+
         {save.isError && (
           <p role="alert" className="text-sm">
             {(save.error as Error).message}
@@ -159,10 +194,18 @@ function CustomerForm({ id, initial }: { id?: string; initial: CustomerInput }) 
             onClick={() => navigate('/customers')}
             className="rounded border border-line px-4 py-2 text-sm"
           >
-            Cancelar
+            {id ? 'Voltar' : 'Cancelar'}
           </button>
         </div>
       </form>
+
+      {failed && (
+        <p role="alert" className="mt-4 text-sm">
+          O cliente foi salvo, mas um veículo não: {failed}
+        </p>
+      )}
+
+      {id ? <VehiclesCard ownerId={id} /> : null}
     </section>
   )
 }

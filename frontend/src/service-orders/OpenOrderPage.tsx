@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useCustomers } from '../customers/api'
 import { useMechanics, useOpenOrder } from './api'
 
@@ -100,9 +100,15 @@ export function OpenOrderPage() {
                   </option>
                 ))}
               </select>
+              {/* Constatar o problema sem dar saída trava quem está abrindo a
+                  OS: o veículo se cadastra na ficha do cliente. */}
               {customerId && vehicles.length === 0 && (
                 <span className="mt-1 block text-xs text-ink-soft">
-                  Este cliente não tem veículo cadastrado.
+                  Este cliente não tem veículo cadastrado.{' '}
+                  <Link to={`/customers/${customerId}`} className="font-medium underline">
+                    Cadastrar agora
+                  </Link>
+                  .
                 </span>
               )}
             </label>
